@@ -4,6 +4,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const { neural, engineering, docs } = require("../dashboard/catalog.js");
 const workspace = require("../desktop/workspace.cjs");
+const { Workbench } = require("../orchestrator/workbench.cjs");
+const { Notices } = require("../orchestrator/notices.cjs");
 const packageInfo = require("../package.json");
 const tools = [...neural, ...engineering];
 const json = (res, status, value) => {
@@ -48,6 +50,8 @@ class PhoneServer {
       launchNative,
       port,
     });
+    this.workbench = new Workbench(getRoot, runtime);
+    this.notices = new Notices(getRoot);
     this.server = null;
     this.sessions = new Map();
     this.streams = new Set();
@@ -88,6 +92,25 @@ class PhoneServer {
       }, 500);
     };
     this.runtime.on("change", this.change);
+    this.notice = (value) => {
+      if (value.job)
+        this.workbench
+          .update((d) => {
+            d.notifications.unshift({
+              id: crypto.randomUUID(),
+              title: value.title,
+              text: value.body,
+              at: new Date().toISOString(),
+            });
+            d.notifications = d.notifications.slice(0, 100);
+          })
+          .catch(() => {});
+      for (const entry of this.streams)
+        entry.res.write(`event: notice\ndata: ${JSON.stringify(value)}\n\n`);
+      this.notices.send(value).catch(() => {});
+    };
+    this.runtime.on("job-finished", this.notice);
+    this.runtime.on("workflow-finished", this.notice);
   }
   origin(req) {
     const host = req.headers.host;
@@ -188,7 +211,7 @@ class PhoneServer {
         });
       const token = crypto.randomBytes(32).toString("base64url");
       const expires = now + 7 * 86400000;
-      this.sessions.set(hash(token), { expires });
+      this.sessions.set(hash(token), { expires, id: hash(token) });
       tries.count = 0;
       res.setHeader(
         "Set-Cookie",
@@ -207,6 +230,7 @@ class PhoneServer {
           /(?:^|;\s*)dino_phone=([^;]+)/,
         );
         if (cookie) this.sessions.delete(hash(cookie[1]));
+        await this.notices.remove(session.id);
         for (const entry of this.streams)
           if (entry.session === session) entry.res.end();
         res.setHeader(
@@ -214,6 +238,18 @@ class PhoneServer {
           "dino_phone=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
         );
         return json(res, 200, { paired: false });
+      }
+      if (url.pathname === "/api/workbench" && req.method === "GET")
+        return json(res, 200, await this.workbench.execute("state"));
+      if (url.pathname === "/api/workbench" && req.method === "POST") {
+        const input = await body(req);
+        return json(res, 200, await this.workbench.execute(input.op, input));
+      }
+      if (url.pathname === "/api/push-key" && req.method === "GET")
+        return json(res, 200, { key: await this.notices.key() });
+      if (url.pathname === "/api/push" && req.method === "POST") {
+        await this.notices.subscribe(await body(req), session.id);
+        return json(res, 200, { enabled: true });
       }
       if (req.method === "GET" && url.pathname === "/api/state")
         return json(res, 200, await this.state());
@@ -348,9 +384,16 @@ class PhoneServer {
       res.writeHead(302, { Location: "/phone/" }).end();
       return;
     }
+    const shared = new Map(
+      ["index.html", "app.js", "viewer.js", "styles.css"].map((f) => [
+        "/workbench/" + f,
+        path.join(__dirname, "..", "workbench", f),
+      ]),
+    );
     const relative = staticFiles.get(url.pathname);
     let file;
-    if (relative) file = path.join(__dirname, relative);
+    if (shared.has(url.pathname)) file = shared.get(url.pathname);
+    else if (relative) file = path.join(__dirname, relative);
     else if (url.pathname === "/phone/catalog.js")
       file = path.join(__dirname, "..", "dashboard", "catalog.js");
     else return json(res, 404, { error: "File unavailable." });
@@ -369,6 +412,11 @@ class PhoneServer {
   }
   async close() {
     clearTimeout(this.streamTimer);
+    if (this.notice) {
+      this.runtime.removeListener("job-finished", this.notice);
+      this.runtime.removeListener("workflow-finished", this.notice);
+    }
+    await this.notices.clear().catch(() => {});
     if (this.change) this.runtime.removeListener("change", this.change);
     for (const stream of this.streams) stream.res.end();
     this.streams.clear();

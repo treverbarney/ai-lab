@@ -828,3 +828,11 @@ async function phonePanel() {
   render(await window.lab.phoneInfo());
 }
 $("#phone-access").addEventListener("click", action(phonePanel));
+
+$("#open-workbench").addEventListener(
+  "click",
+  action(async () => {
+    requireDesktop();
+    await window.lab.openWorkbench();
+  }),
+);

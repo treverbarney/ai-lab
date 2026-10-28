@@ -229,6 +229,13 @@ app.whenReady().then(async () => {
       }
     },
   });
+  const { Notification } = require("electron");
+  runtime.on("job-finished", (value) => {
+    if (Notification.isSupported()) new Notification(value).show();
+  });
+  runtime.on("workflow-finished", (value) => {
+    if (Notification.isSupported()) new Notification(value).show();
+  });
   let updateTimer;
   runtime.on("change", () => {
     if (updateTimer) return;
@@ -262,6 +269,14 @@ app.whenReady().then(async () => {
         ]),
     ),
   }));
+  handle("workbench", (op, input) => phone.server.workbench.execute(op, input));
+  handle("workbench-open", async () => {
+    await phone.start();
+    const info = await phone.info();
+    return shell.openExternal(
+      info.localUrl + "#pair=" + info.key + "&workbench=1",
+    );
+  });
   handle("phone-info", () => phone.info());
   handle("phone-start", async () => {
     await phone.start();
@@ -369,6 +384,7 @@ app.whenReady().then(async () => {
       );
     await runtime.close();
     await connections.close();
+    await phone.server.workbench.lock;
     root = selected;
     runtime.root = root;
     runtime.jobs.clear();

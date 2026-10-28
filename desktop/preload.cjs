@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
   "lab",
   Object.freeze({
+    workbench: (op, input) => ipcRenderer.invoke("lab:workbench", op, input),
+    openWorkbench: () => ipcRenderer.invoke("lab:workbench-open"),
     phoneInfo: () => ipcRenderer.invoke("lab:phone-info"),
     phoneStart: () => ipcRenderer.invoke("lab:phone-start"),
     phonePrivate: () => ipcRenderer.invoke("lab:phone-private"),

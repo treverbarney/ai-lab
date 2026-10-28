@@ -1,6 +1,9 @@
 "use strict";
 const $ = (selector) => document.querySelector(selector);
 const catalog = window.labCatalog;
+const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
+  "workbench",
+);
 const tools = [...catalog.neural, ...catalog.engineering];
 const names = {
   "llm-viz": "Dino Neural",
@@ -159,6 +162,10 @@ function connectStream() {
       connected = true;
       update();
     }
+  });
+  stream.addEventListener("notice", (event) => {
+    const value = JSON.parse(event.data);
+    toast(value.title + ": " + value.body);
   });
   stream.onerror = () => {
     stream?.close();
@@ -585,6 +592,43 @@ window.addEventListener("offline", () => {
   update();
 });
 (async () => {
+  const projects = document.createElement("a");
+  projects.href = "/workbench/index.html";
+  projects.className = "button primary";
+  projects.textContent = "Projects, 3D review & agent →";
+  $("#studio").append(projects);
+  const notify = button(
+    "Enable completion notifications",
+    "button secondary",
+    async () => {
+      if (!connected) throw Error("Pair your host first.");
+      if (!("PushManager" in window))
+        throw Error(
+          "Use the installed Home Screen app for notifications on iPhone.",
+        );
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted")
+        throw Error("Notifications were not enabled.");
+      const registration = await navigator.serviceWorker.ready;
+      const { key } = await api("push-key");
+      const bytes = Uint8Array.from(
+        atob(
+          key
+            .replace(/-/g, "+")
+            .replace(/_/g, "/")
+            .padEnd(Math.ceil(key.length / 4) * 4, "="),
+        ),
+        (c) => c.charCodeAt(0),
+      );
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: bytes,
+      });
+      await api("push", "POST", subscription.toJSON());
+      toast("Completion notifications enabled.");
+    },
+  );
+  $("#more").append(notify);
   renderTools();
   showConnection();
   if ("serviceWorker" in navigator && window.isSecureContext)
@@ -600,4 +644,5 @@ window.addEventListener("offline", () => {
       toast(error.message);
     }
   } else await refresh();
+  if (goWorkbench && connected) location.assign("/workbench/index.html");
 })().catch((error) => toast(error.message));

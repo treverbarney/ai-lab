@@ -1,4 +1,4 @@
-const CACHE = "dino-phone-v1";
+const CACHE = "dino-phone-v2";
 const SHELL = [
   "./",
   "./app.js",
@@ -46,4 +46,19 @@ self.addEventListener("fetch", (event) => {
       })
       .catch(() => caches.match(event.request)),
   );
+});
+
+self.addEventListener("push", (event) => {
+  const data = event.data?.json() || {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Dino Lab", {
+      body: data.body,
+      icon: "/phone/icons/dino-192.png",
+      data: { url: "/phone/" },
+    }),
+  );
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow("/phone/"));
 });

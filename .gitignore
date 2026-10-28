@@ -5,3 +5,5 @@ dist/
 
 .dino/
 __pycache__/
+
+workbench/viewer.js

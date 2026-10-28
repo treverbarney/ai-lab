@@ -82,3 +82,30 @@ See [the Dino desktop guide](docs/desktop.md), [engineering setup](setup/install
 and [project architecture](docs/architecture.md). Fusion and FreeCAD require their
 native applications and enabled add-ins on your computer. Dino's MCP inspector
 runs explicit tool calls; it does not include an autonomous LLM agent or paid API.
+
+## Projects, 3D review, agent requests and notifications
+
+Open **Projects & agent** on desktop, or **Projects, 3D review & agent** in the
+phone studio. Create a project, save notes, attach versioned artifact copies,
+and orbit/zoom STL or self-contained GLB files. Draw screen-space review markups
+and save them with the project. STEP stays downloadable for native CAD.
+
+Agent requests propose a sequence of the existing plate, sphere-drop and prepared
+CPU training actions. Review the exact steps and **Approve & queue** or reject.
+These are bounded presets, not unrestricted natural-language CAD generation;
+the plate and sphere-drop examples are independent jobs. External agents can
+submit requests with `DINO_HOST`, `DINO_PAIR_KEY` and
+`npm run agent:request -- PROJECT_ID "build a plate and run physics"`.
+The CLI only submits; approval happens in the workbench.
+
+Heavy installs, sample jobs and training serialize in a shared queue. Servers can
+remain open, and numeric libraries use two threads. This is concurrency control,
+not an OS CPU-percentage limit. Cancel waiting jobs or stop running jobs from
+the queue. Pending work is cancelled on shutdown; projects and receipts persist.
+
+Completion appears in the project inbox and desktop notifications. For phone
+background notifications, install the Home Screen app, then choose **Enable
+completion notifications** in More and grant permission. Web Push uses the
+browser's push provider, while your host must remain awake with phone access on.
+Stopping phone access removes subscriptions. Actual iOS/Android push delivery
+and notification permission behavior require device verification.

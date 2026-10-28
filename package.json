@@ -1,6 +1,6 @@
 {
   "name": "dino-lab",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "One local Dino workspace for neural exploration, training, CAD and simulation",
   "author": "Trever Barney",
@@ -13,18 +13,28 @@
     "doctor": "node setup/doctor.cjs",
     "package:mac": "node desktop/package.cjs --platform darwin --arch arm64",
     "phone": "node phone/standalone.cjs",
-    "phone:private": "node phone/standalone.cjs --tailscale"
+    "phone:private": "node phone/standalone.cjs --tailscale",
+    "build:viewer": "esbuild workbench/viewer-source.js --bundle --format=esm --minify --outfile=workbench/viewer.js",
+    "agent:request": "node workbench/agent.cjs",
+    "prestart": "npm run build:viewer",
+    "prepackage": "npm run build:viewer",
+    "prepackage:mac": "npm run build:viewer",
+    "prephone": "npm run build:viewer",
+    "prephone:private": "npm run build:viewer"
   },
   "engines": {
     "node": ">=22.12"
   },
   "devDependencies": {
     "@electron/packager": "20.3.0",
-    "electron": "45.1.0"
+    "electron": "45.1.0",
+    "esbuild": "0.28.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
-    "qrcode": "1.5.4"
+    "qrcode": "1.5.4",
+    "three": "0.186.1",
+    "web-push": "3.6.7"
   },
   "productName": "Dino Lab"
 }

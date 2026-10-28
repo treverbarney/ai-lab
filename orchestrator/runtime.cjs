@@ -16,10 +16,14 @@ class Runtime extends EventEmitter {
     Object.assign(this, { root, urls, spawnProcess, buildRecipe, env });
     this.jobs = new Map();
     this.starting = new Set();
+    this.queue = [];
+    this.heavy = null;
+    this.closing = false;
+    this.draining = Promise.resolve();
   }
   snapshot() {
     return [...this.jobs.values()].map(
-      ({ child, stopping, done, workspaceRoot, ...job }) => ({
+      ({ child, stopping, done, finish, root, workspaceRoot, ...job }) => ({
         ...job,
         log: job.log.slice(-30000),
       }),
@@ -30,6 +34,78 @@ class Runtime extends EventEmitter {
     this.emit("change");
   }
   async start(id, action) {
+    const heavy = ["install", "sample", "train"].includes(action);
+    if (
+      this.queue.some((j) => j.id === id) ||
+      this.starting.has(id) ||
+      ["running", "stopping"].includes(this.jobs.get(id)?.state)
+    )
+      throw new Error("This tool already has an active job. Stop it first.");
+    if (!heavy) return this.startNow(id, action);
+    if (!this.root) throw new Error("Connect a repository first.");
+    this.buildRecipe(this.root, id, action, this.urls());
+    if (!this.heavy) {
+      this.heavy = id;
+      try {
+        const value = await this.startNow(id, action);
+        this.jobs.get(id).done.finally(() => {
+          this.heavy = null;
+          this.drain();
+        });
+        return value;
+      } catch (e) {
+        this.heavy = null;
+        this.drain();
+        throw e;
+      }
+    }
+    let finish;
+    const done = new Promise((resolve) => (finish = resolve));
+    const job = {
+      id,
+      action,
+      state: "queued",
+      startedAt: new Date().toISOString(),
+      log: "Waiting for the heavy-job slot.\n",
+      done,
+      finish,
+      root: this.root,
+    };
+    this.queue.push(job);
+    this.jobs.set(id, job);
+    this.emit("change");
+    return { id, state: "queued" };
+  }
+  async drain() {
+    if (this.heavy || this.closing) return;
+    const next = this.queue.shift();
+    if (!next) return;
+    if (next.root !== this.root) {
+      next.state = "stopped";
+      next.finish();
+      return this.drain();
+    }
+    let drainFinished;
+    this.draining = new Promise((resolve) => (drainFinished = resolve));
+    this.heavy = next.id;
+    try {
+      await this.startNow(next.id, next.action);
+      const job = this.jobs.get(next.id);
+      await job.done;
+      Object.assign(next, { state: job.state, log: job.log });
+    } catch (e) {
+      next.state = "failed";
+      next.log = e.message;
+      this.jobs.set(next.id, next);
+    } finally {
+      next.finish();
+      this.heavy = null;
+      drainFinished();
+      this.emit("change");
+      this.drain();
+    }
+  }
+  async startNow(id, action) {
     if (!this.root) throw new Error("Connect your Dino Lab repository first.");
     const busy = (key) =>
       this.starting.has(key) ||
@@ -44,6 +120,7 @@ class Runtime extends EventEmitter {
     try {
       const steps = this.buildRecipe(this.root, id, action, this.urls());
       if (steps[0]) await fs.access(steps[0].cwd);
+      if (this.closing) throw Error("Host is stopping.");
       const job = {
         id,
         action,
@@ -81,6 +158,8 @@ class Runtime extends EventEmitter {
               CADGEN_TELEMETRY: "0",
               CADGEN_UPDATE_CHECK: "0",
               OMP_NUM_THREADS: "2",
+              OPENBLAS_NUM_THREADS: "2",
+              MKL_NUM_THREADS: "2",
             },
             shell: false,
             detached: process.platform !== "win32",
@@ -108,6 +187,11 @@ class Runtime extends EventEmitter {
       job.child = null;
       job.finishedAt = new Date().toISOString();
       this.emit("change");
+      this.emit("job-finished", {
+        title: `Dino ${job.state}`,
+        body: `${job.id}: ${job.action}`,
+        job: job.id,
+      });
       try {
         const destination = path.join(job.workspaceRoot, ".dino", "receipts");
         await fs.mkdir(destination, { recursive: true });
@@ -125,6 +209,13 @@ class Runtime extends EventEmitter {
   async stop(id) {
     const job = this.jobs.get(id);
     if (!job) return;
+    if (job.state === "queued") {
+      this.queue = this.queue.filter((j) => j !== job);
+      job.state = "stopped";
+      job.finish();
+      this.emit("change");
+      return;
+    }
     if (job.state === "stopping") return job.done;
     if (job.state !== "running") return;
     job.stopping = true;
@@ -154,7 +245,13 @@ class Runtime extends EventEmitter {
     }
   }
   async close() {
-    await Promise.all([...this.jobs.keys()].map((id) => this.stop(id)));
+    this.closing = true;
+    try {
+      await Promise.all([...this.jobs.keys()].map((id) => this.stop(id)));
+      await this.draining;
+    } finally {
+      this.closing = false;
+    }
   }
 }
 module.exports = { Runtime };

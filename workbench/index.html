@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Dino Lab — Projects</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a href="/phone/">← Dino Lab</a><strong>PROJECT WORKBENCH</strong
+      ><button id="refresh">Refresh</button>
+    </header>
+    <main>
+      <h1>One idea.<br /><em>Every step.</em></h1>
+      <p id="status">Connecting to your host…</p>
+      <section>
+        <h2>Your projects</h2>
+        <div class="row">
+          <select id="project" aria-label="Project"></select
+          ><input
+            id="name"
+            placeholder="New project name"
+            aria-label="New project name"
+          /><button id="create">Create</button>
+        </div>
+        <textarea
+          id="notes"
+          placeholder="Design intent, dimensions, decisions…"
+          aria-label="Project notes"
+        ></textarea
+        ><button id="save">Save notes</button>
+      </section>
+      <section>
+        <h2>Models & review</h2>
+        <div class="row">
+          <select id="artifact" aria-label="Artifact"></select
+          ><button id="attach">Attach to project</button
+          ><button id="preview">Preview 3D</button>
+        </div>
+        <p>
+          STL and self-contained GLB previews. Drag to rotate; pinch to zoom.
+          Markups are saved as screen-space review notes, not dimensional
+          measurements.
+        </p>
+        <div class="viewer">
+          <canvas id="model" aria-label="3D model"></canvas
+          ><canvas id="ink" hidden aria-label="Draw review markup"></canvas>
+        </div>
+        <div class="row">
+          <button id="reset">Reset view</button
+          ><button id="draw">Draw markup</button
+          ><button id="clear">Clear markup</button
+          ><button id="save-ink">Save markup</button>
+        </div>
+        <p id="preview-status"></p>
+        <div id="attached"></div>
+      </section>
+      <section>
+        <h2>Agent requests</h2>
+        <p>
+          Describe a plate, physics test or prepared tiny training run. Dino
+          proposes fixed tool steps for review. It does not generate arbitrary
+          CAD from a prompt or run shell commands.
+        </p>
+        <textarea
+          id="prompt"
+          placeholder="Build a sample plate and run a physics test"
+          aria-label="Agent request"
+        ></textarea
+        ><button id="propose">Propose workflow</button>
+        <div id="requests"></div>
+      </section>
+      <section>
+        <h2>Queue & completion inbox</h2>
+        <p>
+          One heavy job at a time. Local servers can remain running. Numeric
+          libraries are limited to two threads; this is not an OS-wide CPU
+          quota.
+        </p>
+        <div id="queue"></div>
+        <div id="notifications"></div>
+        <button id="dismiss">Clear inbox</button>
+      </section>
+    </main>
+  </body>
+</html>
