@@ -1,54 +1,53 @@
 # AI Lab
 
-Expert-orchestrated system for CAD, full assemblies with physics, math/physics learning, and engineering design. Built for limited budget and compute using specialized experts (MoE-style routing via MCP) instead of one giant model.
+Expert-orchestrated system for CAD, physics, assemblies, and engineering on limited compute/budget.
 
-**Goal**: Generate working parametric CAD + assemblies that pass physics/interference/FEM checks, with Fusion 360 as the preferred interactive environment.
+## Architecture (MoE-style at system level)
 
-## Architecture
+Central orchestrator routes tasks to specialized experts via MCP (Model Context Protocol):
 
-```
-User / Main Agent
-       |
-       v
-Orchestrator (routes tasks)
-   /   |   \    \
-  v    v    v    v
-CAD Gen  Fusion  Physics  Math/FEM
-Expert   Expert  Expert   Expert
-(text-   (MCP)   (MuJoCo) (FreeCAD/
-to-cad)                 CalculiX)
-```
+- **CAD Generation Expert**: Fork of [text-to-cad](https://github.com/treverbarney/text-to-cad) (build123d + OpenCASCADE). Agent writes parametric Python scripts → STEP/STL/GLB. Ideal for parts and simple assemblies.
+- **Fusion 360 Expert**: Wrapper around Fusion MCP (e.g. faust-machines/fusion360-mcp-server or official Autodesk). Preferred for full assemblies, joints, and free personal license workflows.
+- **Physics / Dynamics Expert**: MuJoCo MCP (Rongxuan-Zhou/mujoco-mcp-server) or simple mujoco Python bindings. Validates assemblies, kinematics, dynamics, interference on CPU.
+- **FEM / Validation Expert**: FreeCAD MCP (neka-nat/freecad-mcp) + CalculiX for lightweight stress analysis.
+- **Math / Physics Solver Expert**: Local models or sympy/scipy for equations, units, optimization.
 
-- **Orchestrator**: Lightweight Python agent (or Claude/Grok/Codex with MCP) that routes to specialists.
-- **CAD Generation Expert**: Fork of [text-to-cad](https://github.com/treverbarney/text-to-cad) — agent writes build123d/OpenCASCADE Python scripts → STEP/STL/GLB. Self-correcting via measurements.
-- **Fusion Expert**: MCP server driving Autodesk Fusion 360 (free personal license). Preferred for assemblies, joints, drawings.
-- **Physics Expert**: MuJoCo for fast rigid-body dynamics, contacts, and assembly validation on CPU.
-- **Validation Expert**: FreeCAD MCP + CalculiX for lightweight FEM/stress checks.
+Orchestrator keeps context light by routing only relevant tools to the right expert. Self-correction loops: generate → measure/validate → fix.
 
-## Recommended Forks & Wrappers
+## Forked / Wrapped Tools
 
-| Tool | Repo / Install | Role | License |
-|------|----------------|------|---------|
-| text-to-cad | Forked to treverbarney/text-to-cad | Primary parametric generator | MIT |
-| Fusion MCP | faust-machines/fusion360-mcp-server or frankhommers/autodesk-fusion-mcp | Drive Fusion 360 | MIT |
-| FreeCAD MCP | neka-nat/freecad-mcp | Open-source CAD + FEM | MIT |
-| SolidCraft | tangency-labs/solidcraft | Pure Rust parametric + native MCP | MIT/Apache |
-| MuJoCo | `pip install mujoco` + optional MCP wrapper | Assembly dynamics | Apache 2.0 |
+| Tool | Repo | Role | Status |
+|------|------|------|--------|
+| text-to-cad | treverbarney/text-to-cad | Primary parametric CAD gen | Forked |
+| fusion360-mcp-server | treverbarney/fusion360-mcp-server | Fusion assemblies & joints | Forked |
+| mujoco-mcp-server | treverbarney/mujoco-mcp-server | Physics / dynamics validation | Forked |
+| freecad-mcp | treverbarney/freecad-mcp | FEM / open validation | Forked |
+| SolidCraft | tangency-labs/solidcraft (wrap) | Pure-Rust parametric alternative | Wrapper |
 
-## Quick Start (Low Compute)
+## Low-Compute Priorities
 
-1. Clone this repo and the forked text-to-cad.
-2. Install Fusion 360 (personal) + one MCP add-in.
-3. `pip install mujoco build123d` (or use cadgen from text-to-cad).
-4. Run local model (or API) as orchestrator with MCP servers for each expert.
-5. Workflow: Prompt → CAD script → Export STEP → Import/validate in Fusion or MuJoCo → Iterate on failures.
+- Local / small models where possible
+- CPU-friendly solvers (MuJoCo, CalculiX)
+- Script-first CAD (build123d) for deterministic validation
+- Fusion 360 personal free license for preferred UI
+- Headless checks before heavy simulation
 
-## Next Steps in This Repo
+## Quick Start (local)
 
-- [ ] Orchestrator skeleton (`orchestrator.py`)
-- [ ] MCP client wrappers
-- [ ] Example assembly workflows
-- [ ] Self-correction loops (measure → fix)
-- [ ] Low-compute model recommendations
+1. Clone this repo and the forked experts.
+2. Install Fusion 360 (free personal) + enable MCP add-in from the forked fusion360-mcp-server.
+3. `pip install mujoco build123d` and set up MuJoCo MCP.
+4. Configure your agent (Claude Code, Cursor, Grok, etc.) with the MCP servers.
+5. Point the orchestrator at the experts.
 
-Built intelligently for the AI Lab. Contributions welcome.
+See `orchestrator/` for skeleton code and `docs/` for detailed plans.
+
+## Phased Build Plan
+
+1. **Phase 1 (done in this scaffold)**: Architecture, forks, README, basic structure.
+2. **Phase 2**: Implement lightweight MCP orchestrator + routing logic.
+3. **Phase 3**: Custom skills for text-to-cad focused on assemblies + physics export (URDF/MJCF).
+4. **Phase 4**: Fusion ↔ text-to-cad roundtrip, validation loops, MuJoCo assembly tests.
+5. **Phase 5**: Expert self-improvement / math-physics learning loops.
+
+Built for intelligent, constrained AI engineering labs.
