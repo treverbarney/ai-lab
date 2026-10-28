@@ -1,5 +1,33 @@
 # AI Lab
 
+## Run the desktop app locally
+
+Requires **Node.js 22.12+**, npm and Git. Run on macOS, Windows or Linux:
+
+```bash
+git clone --recurse-submodules https://github.com/treverbarney/ai-lab.git
+cd ai-lab
+npm ci
+npm start
+```
+
+Already cloned? Run `bash setup/add-neural-submodules.sh` (Git Bash on Windows)
+then `npm ci && npm start`. The setup script is safe to rerun and restores the
+pinned submodules, including nested dependencies.
+
+The dark launcher opens immediately. Explore hosted neural demos in the app,
+open local visualizers after starting their servers, read setup docs, or launch
+installed Fusion / FreeCAD apps. **No servers, training, package installs or
+model downloads start in the background.** Hosted demos need internet and may
+load models when opened; local mode needs each upstream project's dependencies.
+
+To create a desktop application for your current OS, run `npm run package`.
+Open **AI Lab** from `dist/` (on macOS, move the `.app` into Applications).
+The first time you open a packaged app, click **Choose repository** and select
+this checkout. Submodules stay outside the app bundle. These local builds are
+unsigned; public distribution requires platform signing/notarization.
+See [the desktop guide](docs/desktop.md) for local ports, packaging and troubleshooting.
+
 Unified lab for **neural networks + LLM training** and **CAD / physics / engineering**.
 
 Fork the best open-source tools, keep them modular, and run everything from one place. Designed to be low-compute and portfolio-friendly.
@@ -24,7 +52,7 @@ Fork the best open-source tools, keep them modular, and run everything from one 
 ### Visualizers (no GPU required)
 ```bash
 # After adding as submodules (see setup/)
-cd neural/llm-viz && yarn && yarn dev
+cd neural/llm-viz && corepack yarn install && corepack yarn dev --hostname 127.0.0.1
 cd neural/transformer-explainer && npm install && npm run dev
 ```
 
@@ -36,15 +64,14 @@ pip install -r requirements.txt
 ```
 
 ### Dashboard
-Open `dashboard/index.html` in a browser (or serve the folder) for links to every component.
+Use `npm start` for the desktop launcher. `dashboard/index.html` also works as a browser preview with hosted demo links; native shortcuts and local status require the desktop app.
 
 ## Adding the neural forks as submodules
 
 ```bash
-git submodule add https://github.com/bbycroft/llm-viz neural/llm-viz
-git submodule add https://github.com/poloclub/transformer-explainer neural/transformer-explainer
-git submodule add https://github.com/tensorspace-team/tensorspace neural/tensorspace
-git submodule add https://github.com/jingyaogong/minimind neural/minimind
+bash setup/add-neural-submodules.sh
+# Or, after cloning a repo with the submodules already registered:
+git submodule update --init --recursive
 ```
 
 ## Cost

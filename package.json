@@ -1,0 +1,20 @@
+{
+  "name": "ai-lab-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local launcher for neural exploration and engineering tools",
+  "author": "Trever Barney",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "package": "node desktop/package.cjs",
+    "test": "node --test test/*.test.cjs"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.1.0"
+  }
+}

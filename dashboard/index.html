@@ -1,46 +1,184 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Lab Dashboard</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #0c0d10; color: #ecece8; }
-    h1 { color: #88a494; }
-    a { color: #c5cdd8; }
-    .card { background: #1a1c21; padding: 1rem; margin: 1rem 0; border-radius: 8px; border-left: 4px solid #88a494; }
-  </style>
-</head>
-<body>
-  <h1>AI Lab</h1>
-  <p>Neural networks + CAD / Physics / Engineering</p>
-
-  <div class="card">
-    <h2>Neural Visualizers</h2>
-    <ul>
-      <li><a href="https://github.com/bbycroft/llm-viz" target="_blank">llm-viz</a> — 3D GPT-style network</li>
-      <li><a href="https://poloclub.github.io/transformer-explainer/" target="_blank">Transformer Explainer</a> — live GPT-2 in browser</li>
-      <li><a href="https://github.com/tensorspace-team/tensorspace" target="_blank">TensorSpace</a> — 3D neural net framework</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Training</h2>
-    <ul>
-      <li><a href="https://github.com/jingyaogong/minimind" target="_blank">MiniMind</a> — train 64M LLM from scratch (~2h, ~$0.40)</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Engineering</h2>
-    <ul>
-      <li>CAD (text-to-cad / build123d)</li>
-      <li>Fusion 360 MCP</li>
-      <li>MuJoCo physics</li>
-      <li>FreeCAD FEM</li>
-    </ul>
-  </div>
-
-  <p><small>Local paths assume submodules are checked out under <code>neural/</code> and engineering tools under their respective folders.</small></p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>AI Lab · Workspace</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="catalog.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" aria-label="AI Lab home"
+          ><span class="brand-mark">a<span>i</span></span
+          ><span>AI LAB<small>PERSONAL RESEARCH STUDIO</small></span></a
+        >
+        <div class="nav-label">WORKSPACE</div>
+        <nav aria-label="Workspace navigation">
+          <a href="#overview" class="active" data-nav="overview"
+            ><span>◈</span> Overview <span class="nav-count">08</span></a
+          >
+          <a href="#neural" data-nav="neural"
+            ><span>⌘</span> Neural track <span class="nav-count">04</span></a
+          >
+          <a href="#engineering" data-nav="engineering"
+            ><span>⬡</span> Engineering <span class="nav-count">04</span></a
+          >
+          <a href="#docs" data-nav="docs"><span>▤</span> Status & docs</a>
+        </nav>
+        <div class="sidebar-note">
+          <span class="eyebrow">YOUR LAB, YOUR PACE</span>
+          <p>Explore a model.<br />Build something real.</p>
+          <span class="muted">Heavy tools run only when you choose.</span>
+        </div>
+        <div class="sidebar-footer">
+          <span class="dot"></span> Local workspace
+          <small id="app-version">AI Lab</small>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div>
+            <span class="muted">Workspace</span><span class="slash">/</span
+            ><strong id="breadcrumb">Overview</strong>
+          </div>
+          <div class="top-actions">
+            <span class="local-badge"
+              ><span class="dot"></span> LOCAL FIRST</span
+            ><button class="quiet" id="choose-workspace">
+              Choose repository
+            </button>
+          </div>
+        </header>
+        <main id="content">
+          <section class="intro">
+            <div>
+              <div class="eyebrow">EXPLORE · TRAIN · ENGINEER</div>
+              <h1>Your ideas. In motion.</h1>
+              <p>
+                A single workspace for understanding intelligence<br
+                  class="wide"
+                />
+                and building the systems around it.
+              </p>
+            </div>
+            <div class="intro-note">
+              <span class="orbit">◈</span>
+              <div>
+                <strong>Two tracks. One lab.</strong
+                ><span>From attention to assembly.</span>
+              </div>
+            </div>
+          </section>
+          <div class="summary-strip">
+            <div>
+              <span class="summary-value">04</span><span>Neural tools</span>
+            </div>
+            <div>
+              <span class="summary-value steel">04</span
+              ><span>Engineering tools</span>
+            </div>
+            <div>
+              <span class="summary-value" id="checkout-count">—</span
+              ><span>Submodules checked out</span>
+            </div>
+            <div class="summary-mode">
+              <span class="dot"></span
+              ><span
+                >On-demand compute<br /><small
+                  >No background training</small
+                ></span
+              >
+            </div>
+          </div>
+          <section id="neural" class="track">
+            <div class="section-heading">
+              <div>
+                <span class="section-number">01</span>
+                <h2>Neural track</h2>
+                <span class="section-subtitle"
+                  >See how intelligence takes shape.</span
+                >
+              </div>
+              <span class="track-tag">EXPLORE & TRAIN</span>
+            </div>
+            <div id="neural-grid" class="grid neural-grid"></div>
+          </section>
+          <section id="engineering" class="track">
+            <div class="section-heading">
+              <div>
+                <span class="section-number steel">02</span>
+                <h2>Engineering track</h2>
+                <span class="section-subtitle"
+                  >Move from concept to physical systems.</span
+                >
+              </div>
+              <span class="track-tag steel">DESIGN & VALIDATE</span>
+            </div>
+            <div id="engineering-grid" class="grid engineering-grid"></div>
+            <p class="track-footnote">
+              Engineering tools and MCP servers are installed separately. The
+              launcher keeps their setup and workflows independent.
+            </p>
+          </section>
+          <section id="docs" class="docs-section">
+            <div class="section-heading">
+              <div>
+                <span class="section-number">03</span>
+                <h2>Workspace status & docs</h2>
+              </div>
+              <button class="quiet" id="refresh">Refresh status ↻</button>
+            </div>
+            <div class="docs-grid">
+              <article class="status-card">
+                <h3>Connected repository</h3>
+                <p id="workspace-path" class="path">
+                  Choose your ai-lab checkout to see local status.
+                </p>
+                <div id="status-list"></div>
+                <button class="quiet" id="open-root">
+                  Open repository folder ↗
+                </button>
+              </article>
+              <article class="docs-card">
+                <h3>A little context goes a long way.</h3>
+                <p>
+                  Setup instructions, architecture and the path between both
+                  tracks.
+                </p>
+                <div id="doc-links"></div>
+              </article>
+            </div>
+          </section>
+          <footer>
+            AI LAB <span>A workspace for curious minds.</span
+            ><span>LOCAL BY DESIGN</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+    <div id="view-toolbar" hidden>
+      <button id="back-home">← Back to lab</button>
+      <div><strong id="view-title"></strong><small id="view-mode"></small></div>
+      <button class="quiet" id="view-browser">Open in browser ↗</button>
+    </div>
+    <dialog id="detail-dialog">
+      <div class="dialog-head">
+        <span class="eyebrow" id="dialog-label">LAB GUIDE</span
+        ><button class="quiet" id="close-dialog" aria-label="Close dialog">
+          ✕
+        </button>
+      </div>
+      <h2 id="dialog-title"></h2>
+      <div id="dialog-body"></div>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
 </html>
