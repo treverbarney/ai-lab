@@ -1,17 +1,18 @@
-# Neural + Engineering Integration Notes
+# Dino Lab — neural and engineering integration
 
-The neural track and the CAD/physics track live side-by-side in this monorepo.
+Neural exploration, MiniMind training and engineering share the same Dino shell,
+registry, job supervisor, MCP host, artifact directory and setup command.
 
-## Shared ideas
-- Modular folders (`neural/`, existing engineering experts)
-- Low-compute first (MiniMind 64M, MuJoCo on CPU, script-based CAD)
-- Dashboard launcher so you can jump between tools
-- Future extension points: vision models, physics-informed NNs, drone control, CAD generation from text
+The source engines remain separate submodules. This lets you update or replace a
+visualizer, model trainer or CAD wrapper without rewriting the desktop project.
+`npm run setup` checks out the pinned versions and their nested dependencies.
 
-## Next steps you can do later
-1. Add Unsloth fine-tuning experiments under `neural/unsloth/`
-2. Hook a trained MiniMind or fine-tuned model into the orchestrator
-3. Export CAD assemblies to MuJoCo and visualize with the 3D tools
-4. Add a vision track (e.g. MiniMind multimodal or a small ViT)
+The engineering expert pattern is unchanged: generate with cadgen/build123d,
+assemble with Fusion and validate with MuJoCo or FreeCAD. The current shared
+surface is tool lifecycle, explicit MCP calls, logs and files. An autonomous
+model that routes requests between experts is a future extension, not a hidden
+dependency or a claimed capability of this build.
 
-Everything is designed so you can keep adding without breaking the existing structure.
+Start with a hosted neural demo, a tiny CPU training experiment, a sample STEP
+plate or the sphere-drop simulation. Outputs stay local under `.dino/` and can be
+handed off to the native engineering tools.

@@ -1,7 +1,7 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const http = require("node:http");
-const { neural } = require("../dashboard/catalog.js");
+const { neural, engineering } = require("../dashboard/catalog.js");
 function localUrl(value) {
   const url = new URL(value);
   if (
@@ -37,7 +37,7 @@ async function moduleStatus(root, item) {
     return "missing";
   }
 }
-function probe(value) {
+function probe(value, timeout = 1200) {
   return new Promise((resolve) => {
     let request;
     try {
@@ -46,7 +46,7 @@ function probe(value) {
         resolve(response.statusCode >= 200 && response.statusCode < 400);
         request.destroy();
       });
-      request.setTimeout(1200, () => request.destroy());
+      request.setTimeout(timeout, () => request.destroy());
       request.on("error", () => resolve(false));
     } catch {
       resolve(false);
@@ -55,9 +55,9 @@ function probe(value) {
 }
 async function status(root, urls) {
   return Promise.all(
-    neural.map(async (item) => ({
+    [...neural, ...engineering].map(async (item) => ({
       id: item.id,
-      checkout: await moduleStatus(root, item),
+      checkout: item.path ? await moduleStatus(root, item) : "built in",
       local: urls[item.id] ? await probe(urls[item.id]) : null,
     })),
   );

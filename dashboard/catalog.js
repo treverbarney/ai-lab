@@ -25,10 +25,11 @@
       source: "https://github.com/poloclub/transformer-explainer",
       port: 5173,
       command:
-        "cd neural/transformer-explainer\nnpm install\nnpm run dev -- --host 127.0.0.1",
+        "cd neural/transformer-explainer\nnpm install --no-save --package-lock=false vite@7.3.7\nnpm run dev -- --host 127.0.0.1",
     },
     {
       id: "tensorspace",
+      port: 5174,
       name: "TensorSpace",
       label: "NETWORK ANATOMY",
       description:
@@ -37,7 +38,7 @@
       url: "https://tensorspace.org/html/playground/index.html",
       source: "https://github.com/tensorspace-team/tensorspace",
       command:
-        "# See the upstream README for local examples and build instructions.\n# The hosted playground is available without installing dependencies.",
+        "# Start local from Dino Lab. No dependency installation required.\n# LeNet example is served on http://127.0.0.1:5174/",
     },
     {
       id: "minimind",
@@ -54,15 +55,19 @@
   const engineering = [
     {
       id: "fusion",
+      path: "engineering/fusion360-mcp",
+      mcp: true,
       name: "Fusion 360 MCP",
       label: "ASSEMBLE",
       description:
         "Connect Fusion to the lab through its MCP add-in. Launch your installed Fusion application.",
-      source: "https://github.com/treverbarney/fusion360-mcp-server",
+      source: "https://github.com/ignaciomolini/mcp-fusion360",
       native: true,
     },
     {
       id: "cad",
+      path: "engineering/text-to-cad",
+      mcp: true,
       name: "Text to CAD",
       label: "GENERATE",
       description:
@@ -79,20 +84,22 @@
     },
     {
       id: "freecad",
+      path: "engineering/freecad-mcp",
+      mcp: true,
       name: "FreeCAD / FEM",
       label: "VALIDATE",
       description:
         "Inspect geometry and run finite element workflows with FreeCAD and CalculiX.",
-      source: "https://www.freecad.org/",
+      source: "https://github.com/neka-nat/freecad-mcp",
       native: true,
     },
   ];
   const docs = [
-    { id: "desktop", name: "Desktop guide", path: "docs/desktop.md" },
+    { id: "desktop", name: "Dino Lab guide", path: "docs/desktop.md" },
     { id: "setup", name: "Engineering setup", path: "setup/install-notes.md" },
     {
       id: "architecture",
-      name: "Lab architecture",
+      name: "Project architecture",
       path: "docs/architecture.md",
     },
     {

@@ -1,0 +1,22 @@
+name: Package Dino Lab
+on:
+  workflow_dispatch:
+jobs:
+  desktop:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dino-Lab-${{ runner.os }}
+          path: dist/

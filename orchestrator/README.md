@@ -1,12 +1,17 @@
-# Orchestrator
+# Dino orchestrator
 
-Lightweight Python router that decides which expert MCP server to call based on task type.
+The orchestrator is implemented in Node alongside the desktop host so the whole
+project has one lifecycle and one launch command.
 
-## Example routing
+- `runtime.cjs`: fixed adapter recipes, subprocess supervision, output, stop and receipts.
+- `mcp.cjs`: standard MCP stdio host; connect, discover, inspect, call, disconnect.
+- `static-server.cjs`: loopback-only TensorSpace server, with path and symlink containment.
+- `training.cjs`: bounded JSONL preparation for MiniMind's diagnostic CPU profile.
 
-- "design a bracket with holes" → text-to-cad expert
-- "assemble these parts with joints in Fusion" → Fusion MCP
-- "check if this assembly collides under gravity" → MuJoCo expert
-- "run a simple stress check" → FreeCAD FEM expert
+`adapters/registry.cjs` preserves the generator / assembler / validator expert
+boundaries. The neural and engineering workspaces share this infrastructure.
+The host does not contain an autonomous agent or silently route natural-language
+requests to modifying tools. A future agent can use the same connected MCP surfaces.
 
-Skeleton code coming next. Uses MCP client libraries to keep each expert's tools isolated.
+Outputs and receipts stay in `.dino/` in the selected repository. Closing the Dino
+window stops owned jobs and disconnects its MCP clients.

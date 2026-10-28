@@ -1,82 +1,68 @@
-# AI Lab
+# Dino Lab
 
-## Run the desktop app locally
+**One local desktop project for neural exploration, training, CAD and physics.**
+Charcoal, warm off-white and Dino orange. Eight tool workspaces. One set of controls.
 
-Requires **Node.js 22.12+**, npm and Git. Run on macOS, Windows or Linux:
+## Open the app
+
+Requires Node.js **22.12+**, npm and Git. Python **3.12+** is needed for engineering
+and training runtimes. Corepack is needed for Dino Neural (`npm install -g corepack`
+if it is missing).
 
 ```bash
-git clone --recurse-submodules https://github.com/treverbarney/ai-lab.git
+git clone --branch codex/desktop-launcher --recurse-submodules https://github.com/treverbarney/ai-lab.git
 cd ai-lab
 npm ci
+npm run setup
 npm start
 ```
 
-Already cloned? Run `bash setup/add-neural-submodules.sh` (Git Bash on Windows)
-then `npm ci && npm start`. The setup script is safe to rerun and restores the
-pinned submodules, including nested dependencies.
+Already cloned? Update this branch, then run the last three commands.
+`npm run setup` restores all seven pinned upstream modules, including nested
+submodules. It works on macOS, Windows and Linux without a Bash dependency.
 
-The dark launcher opens immediately. Explore hosted neural demos in the app,
-open local visualizers after starting their servers, read setup docs, or launch
-installed Fusion / FreeCAD apps. **No servers, training, package installs or
-model downloads start in the background.** Hosted demos need internet and may
-load models when opened; local mode needs each upstream project's dependencies.
+The desktop app opens immediately. Use **Open workspace** on any tool to install
+its runtime, start or stop it, open a hosted/local view, connect its MCP server,
+or inspect its output. Nothing installs, trains or runs on launch. Start only
+what you need. Hosted workspaces require internet.
 
-To create a desktop application for your current OS, run `npm run package`.
-Open **AI Lab** from `dist/` (on macOS, move the `.app` into Applications).
-The first time you open a packaged app, click **Choose repository** and select
-this checkout. Submodules stay outside the app bundle. These local builds are
-unsigned; public distribution requires platform signing/notarization.
-See [the desktop guide](docs/desktop.md) for local ports, packaging and troubleshooting.
+## Eight wrappers. One workbench.
 
-Unified lab for **neural networks + LLM training** and **CAD / physics / engineering**.
+| Dino workspace | Engine | Controls |
+| --- | --- | --- |
+| Dino Neural | llm-viz | Hosted/local views, install, start/stop |
+| Dino Attention | Transformer Explainer | Hosted/local views, install, start/stop |
+| Dino Layers | TensorSpace | Hosted/local views, built-in local server |
+| Dino Train | MiniMind | Isolated runtime, dataset selection, tiny CPU pretrain, logs |
+| Dino Fusion | Fusion 360 MCP | Native launcher, wrapper build, MCP tools |
+| Dino CAD | text-to-cad / cadgen / build123d | CAD engine, sample STEP/STL build, MCP tools |
+| Dino Physics | MuJoCo | Shared engineering runtime, CPU simulation sample |
+| Dino FEM | FreeCAD MCP | Native launcher, wrapper install, MCP tools |
 
-Fork the best open-source tools, keep them modular, and run everything from one place. Designed to be low-compute and portfolio-friendly.
+All wrappers use the shared adapter registry and orchestrator. Outputs are in
+`.dino/artifacts`, training files in `.dino/training`, environments in
+`.dino/venvs`, and job receipts in `.dino/receipts`. Those folders are ignored by Git.
+The upstream engines remain independent submodules, with their names and licenses
+preserved. Dino does not rename or vendor their source.
 
-## Two Main Tracks
-
-### 1. Neural Track (new)
-- **3D GPT visualization**: [bbycroft/llm-viz](https://github.com/bbycroft/llm-viz)
-- **Interactive Transformer explainer** (live GPT-2 in browser): [poloclub/transformer-explainer](https://github.com/poloclub/transformer-explainer)
-- **3D neural network framework**: [tensorspace-team/tensorspace](https://github.com/tensorspace-team/tensorspace)
-- **From-scratch LLM training** (64M model, ~2h on one 3090, ~$0.40): [jingyaogong/minimind](https://github.com/jingyaogong/minimind)
-
-### 2. Engineering Track (existing)
-- Parametric CAD (text-to-cad / build123d)
-- Fusion 360 MCP
-- MuJoCo physics
-- FreeCAD / CalculiX FEM
-- Orchestrator that routes tasks to the right expert
-
-## Quick Start
-
-### Visualizers (no GPU required)
-```bash
-# After adding as submodules (see setup/)
-cd neural/llm-viz && corepack yarn install && corepack yarn dev --hostname 127.0.0.1
-cd neural/transformer-explainer && npm install && npm run dev
-```
-
-### MiniMind training
-```bash
-cd neural/minimind
-pip install -r requirements.txt
-# Follow their README — full pretrain + SFT on mini data is ~2 hours on a 3090
-```
-
-### Dashboard
-Use `npm start` for the desktop launcher. `dashboard/index.html` also works as a browser preview with hosted demo links; native shortcuts and local status require the desktop app.
-
-## Adding the neural forks as submodules
+## Make a desktop application
 
 ```bash
-bash setup/add-neural-submodules.sh
-# Or, after cloning a repo with the submodules already registered:
-git submodule update --init --recursive
+npm run package       # current OS and CPU architecture
+npm run package:mac   # Apple Silicon .app (cross-packaging supported)
 ```
 
-## Cost
-- Visualizers: free
-- MiniMind 64M full pipeline: ~$0.40 cloud GPU or free on your own card
-- Optional 7B Unsloth fine-tune: $0.35–$2
+Open **Dino Lab** from `dist/`. On macOS, move `Dino Lab.app` into Applications.
+A packaged app can **Create workspace** with one click (requires Git), or use
+**Connect repository** to select this checkout; its upstream
+sources, environments and outputs stay outside the bundle. Builds are unsigned.
+The optional **Package Dino Lab** GitHub workflow builds native packages for all
+three desktop platforms when manually dispatched.
 
-See `setup/` and `docs/` for more detail. Everything is modular so you can add vision, video, drones, or more physics later.
+`npm test` runs the adapter, process lifecycle, MCP, workspace and local-server
+checks. `npm run doctor` checks installed tools and submodules.
+
+See [the Dino desktop guide](docs/desktop.md), [engineering setup](setup/install-notes.md)
+and [project architecture](docs/architecture.md). Fusion and FreeCAD require their
+native applications and enabled add-ins on your computer. Dino's MCP inspector
+runs explicit tool calls; it does not include an autonomous LLM agent or paid API.

@@ -11,6 +11,14 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { spawn } = require("node:child_process");
+const { Runtime } = require("../orchestrator/runtime.cjs");
+const { Connections } = require("../orchestrator/mcp.cjs");
+const { defaultConnection } = require("../adapters/registry.cjs");
+const { prepareTraining } = require("../orchestrator/training.cjs");
+const { environment } = require("./environment.cjs");
+const { Bootstrap } = require("./bootstrap.cjs");
+let runtime, connections, bootstrap;
+app.setName("Dino Lab");
 const catalog = require("../dashboard/catalog.js");
 const workspace = require("./workspace.cjs");
 let win,
@@ -73,7 +81,7 @@ async function showView(id, mode) {
     throw new Error("No visualizer available.");
   const url = mode === "local" ? urls()[id] : item.url;
   if (!url) throw new Error("This tool has no local server configured.");
-  if (mode === "local" && !(await workspace.probe(url)))
+  if (mode === "local" && !(await workspace.probe(url, 45000)))
     throw new Error(
       "Local server is offline. Start it using the setup commands, then try again.",
     );
@@ -115,12 +123,13 @@ async function showView(id, mode) {
 }
 async function createWindow() {
   win = new BrowserWindow({
-    title: "AI Lab",
+    title: "Dino Lab",
+    icon: path.join(__dirname, "..", "dashboard", "assets", "dino-icon.png"),
     width: 1380,
     height: 920,
     minWidth: 800,
     minHeight: 620,
-    backgroundColor: "#0c0f11",
+    backgroundColor: "#171817",
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -133,7 +142,12 @@ async function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   win.webContents.on("will-navigate", (event) => event.preventDefault());
   win.on("resize", bounds);
-  win.on("close", closeView);
+  win.on("close", () => {
+    closeView();
+    runtime?.close().catch(console.error);
+    bootstrap?.close().catch(console.error);
+    connections?.close().catch(console.error);
+  });
   win.on("closed", () => {
     view = null;
     win = null;
@@ -145,11 +159,42 @@ app.whenReady().then(async () => {
   try {
     settings = JSON.parse(await fs.readFile(configFile(), "utf8"));
   } catch {
-    settings = {};
+    try {
+      settings = JSON.parse(
+        await fs.readFile(
+          path.join(app.getPath("appData"), "ai-lab-desktop", "workspace.json"),
+          "utf8",
+        ),
+      );
+    } catch {
+      settings = {};
+    }
   }
   const candidate =
-    settings.root || (!app.isPackaged ? path.join(__dirname, "..") : null);
+    settings.root ||
+    (!app.isPackaged
+      ? path.join(__dirname, "..")
+      : path.join(app.getPath("userData"), "workspace"));
   root = (await workspace.isWorkspace(candidate)) ? candidate : null;
+  bootstrap = new Bootstrap({
+    directory: app.getPath("userData"),
+    env: environment(),
+    onLog: (text) => {
+      if (win && !win.isDestroyed())
+        win.webContents.send("lab:bootstrap-log", text);
+    },
+  });
+  runtime = new Runtime({ root, urls, env: environment() });
+  connections = new Connections(environment());
+  let updateTimer;
+  runtime.on("change", () => {
+    if (updateTimer) return;
+    updateTimer = setTimeout(() => {
+      updateTimer = null;
+      if (win && !win.isDestroyed())
+        win.webContents.send("lab:jobs", runtime.snapshot());
+    }, 100);
+  });
   for (const s of [
     session.defaultSession,
     session.fromPartition("lab-visualizers"),
@@ -165,11 +210,91 @@ app.whenReady().then(async () => {
     root,
     urls: urls(),
     version: app.getVersion(),
+    connections: Object.fromEntries(
+      catalog.engineering
+        .filter((x) => x.mcp)
+        .map((x) => [
+          x.id,
+          settings.connections?.[x.id] || defaultConnection(root, x.id),
+        ]),
+    ),
   }));
+  handle("initialize", async () => {
+    if (root) return root;
+    root = await bootstrap.initialize();
+    runtime.root = root;
+    settings.root = root;
+    await save();
+    return root;
+  });
   handle("status", () => workspace.status(root, urls()));
+  handle("jobs", () => runtime.snapshot());
+  handle("training-data", async () => {
+    if (runtime.jobs.get("minimind")?.state === "running")
+      throw new Error(
+        "Stop the current training job before changing its data.",
+      );
+    const result = await dialog.showOpenDialog(win, {
+      title: "Choose JSONL text data for the tiny CPU training profile",
+      properties: ["openFile"],
+      filters: [{ name: "JSONL text records", extensions: ["jsonl"] }],
+    });
+    if (result.canceled) return null;
+    return prepareTraining(root, result.filePaths[0]);
+  });
+  handle("run", async (id, action) => {
+    if (id === "minimind" && action === "train")
+      await fs.access(
+        path.join(root || "", ".dino", "training", "input.jsonl"),
+      );
+    return runtime.start(id, action);
+  });
+  handle("stop", (id) => runtime.stop(id));
+  handle("artifacts", async () => {
+    if (!root) throw new Error("Connect your Dino Lab repository first.");
+    const destination = path.join(root, ".dino", "artifacts");
+    await fs.mkdir(destination, { recursive: true });
+    const error = await shell.openPath(destination);
+    if (error) throw new Error(error);
+  });
+  handle("connection-save", async (id, config) => {
+    if (!catalog.engineering.some((x) => x.id === id && x.mcp))
+      throw new Error("Unknown connection.");
+    if (
+      !config ||
+      typeof config.command !== "string" ||
+      !config.command.trim() ||
+      !Array.isArray(config.args) ||
+      config.args.some((x) => typeof x !== "string")
+    )
+      throw new Error(
+        "Provide an executable and a JSON array of string arguments.",
+      );
+    await connections.disconnect(id);
+    settings.connections = {
+      ...settings.connections,
+      [id]: { command: config.command, args: config.args },
+    };
+    await save();
+  });
+  handle("connection-connect", async (id) => {
+    if (!root) throw new Error("Connect your Dino Lab repository first.");
+    if (!catalog.engineering.some((x) => x.id === id && x.mcp))
+      throw new Error("Unknown connection.");
+    return connections.connect(
+      id,
+      settings.connections?.[id] || defaultConnection(root, id),
+      root,
+    );
+  });
+  handle("connection-disconnect", (id) => connections.disconnect(id));
+  handle("connection-state", () => connections.snapshot());
+  handle("connection-call", (id, name, args) =>
+    connections.call(id, name, args),
+  );
   handle("workspace", async () => {
     const result = await dialog.showOpenDialog(win, {
-      title: "Choose your ai-lab repository",
+      title: "Connect your Dino Lab repository",
       properties: ["openDirectory"],
     });
     if (result.canceled) return root;
@@ -178,7 +303,11 @@ app.whenReady().then(async () => {
       throw new Error(
         "Choose the ai-lab folder containing README.md, neural, setup and orchestrator.",
       );
+    await runtime.close();
+    await connections.close();
     root = selected;
+    runtime.root = root;
+    runtime.jobs.clear();
     settings.root = root;
     await save();
     return root;
@@ -222,6 +351,16 @@ app.whenReady().then(async () => {
     const item = itemById(id);
     if (!item.native) throw new Error("No native application shortcut.");
     let target = settings.nativeApps?.[id];
+    if (!target && process.platform === "darwin") {
+      const candidate =
+        id === "freecad"
+          ? "/Applications/FreeCAD.app"
+          : "/Applications/Autodesk Fusion.app";
+      try {
+        await fs.access(candidate);
+        target = candidate;
+      } catch {}
+    }
     if (!target || choose === true) {
       const result = await dialog.showOpenDialog(win, {
         title: `Choose ${item.name} application`,
@@ -264,4 +403,16 @@ app.whenReady().then(async () => {
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+let quitting = false;
+app.on("before-quit", (event) => {
+  if (quitting) return;
+  event.preventDefault();
+  quitting = true;
+  Promise.allSettled([
+    runtime?.close(),
+    connections?.close(),
+    bootstrap?.close(),
+  ]).finally(() => app.quit());
 });

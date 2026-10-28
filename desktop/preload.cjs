@@ -2,6 +2,23 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
   "lab",
   Object.freeze({
+    initialize: () => ipcRenderer.invoke("lab:initialize"),
+    onBootstrap: (callback) =>
+      ipcRenderer.on("lab:bootstrap-log", (_event, text) => callback(text)),
+    trainingData: () => ipcRenderer.invoke("lab:training-data"),
+    run: (id, action) => ipcRenderer.invoke("lab:run", id, action),
+    stop: (id) => ipcRenderer.invoke("lab:stop", id),
+    jobs: () => ipcRenderer.invoke("lab:jobs"),
+    artifacts: () => ipcRenderer.invoke("lab:artifacts"),
+    saveConnection: (id, config) =>
+      ipcRenderer.invoke("lab:connection-save", id, config),
+    connect: (id) => ipcRenderer.invoke("lab:connection-connect", id),
+    disconnect: (id) => ipcRenderer.invoke("lab:connection-disconnect", id),
+    connectionState: () => ipcRenderer.invoke("lab:connection-state"),
+    callTool: (id, name, args) =>
+      ipcRenderer.invoke("lab:connection-call", id, name, args),
+    onJobs: (callback) =>
+      ipcRenderer.on("lab:jobs", (_event, jobs) => callback(jobs)),
     catalog: () => ipcRenderer.invoke("lab:catalog"),
     status: () => ipcRenderer.invoke("lab:status"),
     workspace: () => ipcRenderer.invoke("lab:workspace"),

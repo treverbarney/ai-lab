@@ -47,7 +47,7 @@ test("workspace and module checks distinguish empty folders from real checkouts"
   assert.equal(await moduleStatus(root, item), "checked out");
   assert.equal(await moduleStatus(null, item), "missing");
   const results = await status(root, {});
-  assert.equal(results.length, 4);
+  assert.equal(results.length, 8);
   assert.equal(results[0].checkout, "checked out");
   assert.ok(results.every((x) => x.local === null));
 });
