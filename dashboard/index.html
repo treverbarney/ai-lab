@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Lab Dashboard</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #0c0d10; color: #ecece8; }
+    h1 { color: #88a494; }
+    a { color: #c5cdd8; }
+    .card { background: #1a1c21; padding: 1rem; margin: 1rem 0; border-radius: 8px; border-left: 4px solid #88a494; }
+  </style>
+</head>
+<body>
+  <h1>AI Lab</h1>
+  <p>Neural networks + CAD / Physics / Engineering</p>
+
+  <div class="card">
+    <h2>Neural Visualizers</h2>
+    <ul>
+      <li><a href="https://github.com/bbycroft/llm-viz" target="_blank">llm-viz</a> — 3D GPT-style network</li>
+      <li><a href="https://poloclub.github.io/transformer-explainer/" target="_blank">Transformer Explainer</a> — live GPT-2 in browser</li>
+      <li><a href="https://github.com/tensorspace-team/tensorspace" target="_blank">TensorSpace</a> — 3D neural net framework</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Training</h2>
+    <ul>
+      <li><a href="https://github.com/jingyaogong/minimind" target="_blank">MiniMind</a> — train 64M LLM from scratch (~2h, ~$0.40)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Engineering</h2>
+    <ul>
+      <li>CAD (text-to-cad / build123d)</li>
+      <li>Fusion 360 MCP</li>
+      <li>MuJoCo physics</li>
+      <li>FreeCAD FEM</li>
+    </ul>
+  </div>
+
+  <p><small>Local paths assume submodules are checked out under <code>neural/</code> and engineering tools under their respective folders.</small></p>
+</body>
+</html>

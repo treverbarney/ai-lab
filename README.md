@@ -1,53 +1,55 @@
 # AI Lab
 
-Expert-orchestrated system for CAD, physics, assemblies, and engineering on limited compute/budget.
+Unified lab for **neural networks + LLM training** and **CAD / physics / engineering**.
 
-## Architecture (MoE-style at system level)
+Fork the best open-source tools, keep them modular, and run everything from one place. Designed to be low-compute and portfolio-friendly.
 
-Central orchestrator routes tasks to specialized experts via MCP (Model Context Protocol):
+## Two Main Tracks
 
-- **CAD Generation Expert**: Fork of [text-to-cad](https://github.com/treverbarney/text-to-cad) (build123d + OpenCASCADE). Agent writes parametric Python scripts → STEP/STL/GLB. Ideal for parts and simple assemblies.
-- **Fusion 360 Expert**: Wrapper around Fusion MCP (e.g. faust-machines/fusion360-mcp-server or official Autodesk). Preferred for full assemblies, joints, and free personal license workflows.
-- **Physics / Dynamics Expert**: MuJoCo MCP (Rongxuan-Zhou/mujoco-mcp-server) or simple mujoco Python bindings. Validates assemblies, kinematics, dynamics, interference on CPU.
-- **FEM / Validation Expert**: FreeCAD MCP (neka-nat/freecad-mcp) + CalculiX for lightweight stress analysis.
-- **Math / Physics Solver Expert**: Local models or sympy/scipy for equations, units, optimization.
+### 1. Neural Track (new)
+- **3D GPT visualization**: [bbycroft/llm-viz](https://github.com/bbycroft/llm-viz)
+- **Interactive Transformer explainer** (live GPT-2 in browser): [poloclub/transformer-explainer](https://github.com/poloclub/transformer-explainer)
+- **3D neural network framework**: [tensorspace-team/tensorspace](https://github.com/tensorspace-team/tensorspace)
+- **From-scratch LLM training** (64M model, ~2h on one 3090, ~$0.40): [jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 
-Orchestrator keeps context light by routing only relevant tools to the right expert. Self-correction loops: generate → measure/validate → fix.
+### 2. Engineering Track (existing)
+- Parametric CAD (text-to-cad / build123d)
+- Fusion 360 MCP
+- MuJoCo physics
+- FreeCAD / CalculiX FEM
+- Orchestrator that routes tasks to the right expert
 
-## Forked / Wrapped Tools
+## Quick Start
 
-| Tool | Repo | Role | Status |
-|------|------|------|--------|
-| text-to-cad | treverbarney/text-to-cad | Primary parametric CAD gen | Forked |
-| fusion360-mcp-server | treverbarney/fusion360-mcp-server | Fusion assemblies & joints | Forked |
-| mujoco-mcp-server | treverbarney/mujoco-mcp-server | Physics / dynamics validation | Forked |
-| freecad-mcp | treverbarney/freecad-mcp | FEM / open validation | Forked |
-| SolidCraft | tangency-labs/solidcraft (wrap) | Pure-Rust parametric alternative | Wrapper |
+### Visualizers (no GPU required)
+```bash
+# After adding as submodules (see setup/)
+cd neural/llm-viz && yarn && yarn dev
+cd neural/transformer-explainer && npm install && npm run dev
+```
 
-## Low-Compute Priorities
+### MiniMind training
+```bash
+cd neural/minimind
+pip install -r requirements.txt
+# Follow their README — full pretrain + SFT on mini data is ~2 hours on a 3090
+```
 
-- Local / small models where possible
-- CPU-friendly solvers (MuJoCo, CalculiX)
-- Script-first CAD (build123d) for deterministic validation
-- Fusion 360 personal free license for preferred UI
-- Headless checks before heavy simulation
+### Dashboard
+Open `dashboard/index.html` in a browser (or serve the folder) for links to every component.
 
-## Quick Start (local)
+## Adding the neural forks as submodules
 
-1. Clone this repo and the forked experts.
-2. Install Fusion 360 (free personal) + enable MCP add-in from the forked fusion360-mcp-server.
-3. `pip install mujoco build123d` and set up MuJoCo MCP.
-4. Configure your agent (Claude Code, Cursor, Grok, etc.) with the MCP servers.
-5. Point the orchestrator at the experts.
+```bash
+git submodule add https://github.com/bbycroft/llm-viz neural/llm-viz
+git submodule add https://github.com/poloclub/transformer-explainer neural/transformer-explainer
+git submodule add https://github.com/tensorspace-team/tensorspace neural/tensorspace
+git submodule add https://github.com/jingyaogong/minimind neural/minimind
+```
 
-See `orchestrator/` for skeleton code and `docs/` for detailed plans.
+## Cost
+- Visualizers: free
+- MiniMind 64M full pipeline: ~$0.40 cloud GPU or free on your own card
+- Optional 7B Unsloth fine-tune: $0.35–$2
 
-## Phased Build Plan
-
-1. **Phase 1 (done in this scaffold)**: Architecture, forks, README, basic structure.
-2. **Phase 2**: Implement lightweight MCP orchestrator + routing logic.
-3. **Phase 3**: Custom skills for text-to-cad focused on assemblies + physics export (URDF/MJCF).
-4. **Phase 4**: Fusion ↔ text-to-cad roundtrip, validation loops, MuJoCo assembly tests.
-5. **Phase 5**: Expert self-improvement / math-physics learning loops.
-
-Built for intelligent, constrained AI engineering labs.
+See `setup/` and `docs/` for more detail. Everything is modular so you can add vision, video, drones, or more physics later.
