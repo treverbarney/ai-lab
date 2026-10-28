@@ -17,7 +17,8 @@ const { defaultConnection } = require("../adapters/registry.cjs");
 const { prepareTraining } = require("../orchestrator/training.cjs");
 const { environment } = require("./environment.cjs");
 const { Bootstrap } = require("./bootstrap.cjs");
-let runtime, connections, bootstrap;
+const { PhoneAccess } = require("../phone/access.cjs");
+let runtime, connections, bootstrap, phone;
 app.setName("Dino Lab");
 const catalog = require("../dashboard/catalog.js");
 const workspace = require("./workspace.cjs");
@@ -147,6 +148,7 @@ async function createWindow() {
     runtime?.close().catch(console.error);
     bootstrap?.close().catch(console.error);
     connections?.close().catch(console.error);
+    phone?.close().catch(console.error);
   });
   win.on("closed", () => {
     view = null;
@@ -186,6 +188,47 @@ app.whenReady().then(async () => {
   });
   runtime = new Runtime({ root, urls, env: environment() });
   connections = new Connections(environment());
+  phone = new PhoneAccess({
+    getRoot: () => root,
+    runtime,
+    connections,
+    urls,
+    getConnection: (id) =>
+      settings.connections?.[id] || defaultConnection(root, id),
+    env: environment(),
+    launchNative: async (id) => {
+      let target = settings.nativeApps?.[id];
+      if (!target && process.platform === "darwin")
+        target =
+          id === "freecad"
+            ? "/Applications/FreeCAD.app"
+            : "/Applications/Autodesk Fusion.app";
+      if (!target)
+        throw new Error(
+          "Select this native application in Dino desktop first.",
+        );
+      try {
+        await fs.access(target);
+      } catch {
+        throw new Error(
+          "Native app unavailable. Choose its application path in Dino desktop first.",
+        );
+      }
+      if (process.platform === "linux")
+        await new Promise((resolve, reject) => {
+          const child = spawn(target, [], { detached: true, stdio: "ignore" });
+          child.once("error", reject);
+          child.once("spawn", () => {
+            child.unref();
+            resolve();
+          });
+        });
+      else {
+        const error = await shell.openPath(target);
+        if (error) throw new Error(error);
+      }
+    },
+  });
   let updateTimer;
   runtime.on("change", () => {
     if (updateTimer) return;
@@ -219,6 +262,27 @@ app.whenReady().then(async () => {
         ]),
     ),
   }));
+  handle("phone-info", () => phone.info());
+  handle("phone-start", async () => {
+    await phone.start();
+    try {
+      return await phone.enablePrivate();
+    } catch (error) {
+      return {
+        ...(await phone.info()),
+        message:
+          "Local preview is ready. Private phone link: " +
+          (error.details || error.message),
+      };
+    }
+  });
+  handle("phone-private", () => phone.enablePrivate());
+  handle("phone-stop", () => phone.close());
+  handle("phone-preview", async () => {
+    const info = await phone.info();
+    if (info.localUrl)
+      return shell.openExternal(info.localUrl + "#pair=" + info.key);
+  });
   handle("initialize", async () => {
     if (root) return root;
     root = await bootstrap.initialize();
@@ -414,5 +478,6 @@ app.on("before-quit", (event) => {
     runtime?.close(),
     connections?.close(),
     bootstrap?.close(),
+    phone?.close(),
   ]).finally(() => app.quit());
 });

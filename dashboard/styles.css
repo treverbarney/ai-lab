@@ -1284,3 +1284,15 @@ dialog p {
     transition: none;
   }
 }
+
+.phone-qr {
+  display: block;
+  margin: 20px 0;
+  border: 8px solid white;
+  border-radius: 5px;
+  max-width: 100%;
+}
+.top-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

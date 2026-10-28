@@ -241,6 +241,7 @@ function updateStatusLabels() {
   $("#job-count").textContent = String(count);
 }
 async function refresh() {
+  $("#phone-access").hidden = !desktop;
   $("#initialize-workspace").hidden = !desktop || Boolean(data.root);
   if (desktop) {
     [statuses, jobs, connected] = await Promise.all([
@@ -740,3 +741,90 @@ if (desktop) {
   render();
   await refresh();
 })().catch((error) => toast(`Dino Lab could not load: ${error.message}`));
+
+async function phonePanel() {
+  const body = modal("Your lab. In your pocket.", "DINO LAB / PHONE ACCESS");
+  body.append(
+    paragraph(
+      "Use Dino Lab on iPhone or Android. Your desktop runs local tools; your phone controls jobs, MCP tools and build files. Connect Tailscale on both devices.",
+    ),
+  );
+  const content = document.createElement("div");
+  body.append(content);
+  function render(info) {
+    content.replaceChildren(
+      paragraph(
+        info.message ||
+          "Phone access is off. Enable it to create a private link and pairing code.",
+        "panel-note",
+      ),
+    );
+    const controls = document.createElement("div");
+    controls.className = "panel-actions";
+    if (!info.running)
+      controls.append(
+        button("Enable phone access", "button primary", async () =>
+          render(await window.lab.phoneStart()),
+        ),
+      );
+    else {
+      if (!info.privateUrl)
+        controls.append(
+          button("Enable private Tailscale link", "button primary", async () =>
+            render(await window.lab.phonePrivate()),
+          ),
+        );
+      controls.append(
+        button("Open local preview ↗", "button subtle", () =>
+          window.lab.phonePreview(),
+        ),
+      );
+      controls.append(
+        button("Stop access & revoke phones", "text-button", async () =>
+          render(await window.lab.phoneStop()),
+        ),
+      );
+    }
+    content.append(controls);
+    if (info.privateUrl) {
+      const link = document.createElement("p");
+      link.className = "path";
+      link.textContent = info.privateUrl;
+      content.append(link);
+      const image = document.createElement("img");
+      image.src = info.qr;
+      image.alt = "Scan to pair Dino Lab on your phone";
+      image.width = 240;
+      image.height = 240;
+      image.className = "phone-qr";
+      content.append(image);
+      content.append(
+        paragraph(
+          "Scan on your phone with Tailscale connected. The private link includes a pairing key; share it only with your own devices.",
+          "panel-note",
+        ),
+      );
+      content.append(
+        button("Copy private pairing link", "button subtle", async () => {
+          await navigator.clipboard.writeText(info.pairingUrl);
+          toast("Private phone pairing link copied.");
+        }),
+      );
+    }
+    if (info.running) {
+      const sectionElement = section(content, "Manual pairing key");
+      const key = document.createElement("pre");
+      key.className = "schema-output";
+      key.textContent = info.key;
+      sectionElement.append(key);
+      sectionElement.append(
+        paragraph(
+          "On iPhone: Share → Add to Home Screen. On Android: browser menu → Install app. Keep this computer awake and phone access running.",
+          "panel-note",
+        ),
+      );
+    }
+  }
+  render(await window.lab.phoneInfo());
+}
+$("#phone-access").addEventListener("click", action(phonePanel));

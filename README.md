@@ -26,6 +26,22 @@ its runtime, start or stop it, open a hosted/local view, connect its MCP server,
 or inspect its output. Nothing installs, trains or runs on launch. Start only
 what you need. Hosted workspaces require internet.
 
+## Use it on your phone
+
+Open **Phone access** in Dino Lab desktop, then **Enable phone access**. With
+Tailscale connected on both your computer and phone, scan the private pairing QR
+code. On iPhone use Share → Add to Home Screen; on Android use Install app.
+
+The phone workbench controls host jobs, streams logs, uses configured MCP tools,
+and downloads build artifacts. Your host computer must remain awake with Dino
+running. Hosted neural demos can run in the phone browser. The app shell remains
+available offline; local jobs require the host connection.
+
+Phone access starts only when enabled, uses a private HTTPS Tailscale Serve link
+plus device pairing, and revokes its sessions when stopped. It does not expose
+a public server. See [the phone guide](docs/phone.md). Terminal users can instead
+run `npm run phone:private` from the repo (or `npm run phone` for a localhost preview).
+
 ## Eight wrappers. One workbench.
 
 | Dino workspace | Engine | Controls |

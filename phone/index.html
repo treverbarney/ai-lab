@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#171817" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Dino Lab" />
+    <title>Dino Lab — Pocket studio</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/dino-180.png" />
+    <link rel="icon" href="icons/dino-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="catalog.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="header">
+      <a href="#studio" class="brand"
+        ><img src="icons/dino-192.png" width="34" height="34" alt="" /><span
+          >DINO <b>LAB</b><small>POCKET STUDIO</small></span
+        ></a
+      ><button class="status-chip" id="connection-button">
+        <i id="connection-dot"></i><span id="connection-label">Connect</span>
+      </button>
+    </header>
+    <main>
+      <section id="studio" class="tab-panel">
+        <div class="eyebrow">YOUR IDEAS. ANYWHERE.</div>
+        <h1>Big lab.<br /><em>Small screen.</em></h1>
+        <p class="intro">
+          Explore from your phone.<br />Let your desktop do the heavy lifting.
+        </p>
+        <div class="host-banner">
+          <span class="host-icon">↗</span>
+          <div>
+            <strong id="host-name">Your desktop, one tap away.</strong>
+            <p id="host-detail">
+              Pair with Dino Lab to manage your local tools.
+            </p>
+          </div>
+        </div>
+        <div class="metrics">
+          <div><strong>08</strong><span>Tool workspaces</span></div>
+          <div>
+            <strong id="running-count">—</strong><span>Running on host</span>
+          </div>
+          <div>
+            <strong id="source-count">—</strong><span>Sources ready</span>
+          </div>
+        </div>
+        <div class="section-heading">
+          <h2>Your workbench</h2>
+          <span>EXPLORE / BUILD / TRAIN</span>
+        </div>
+        <div id="tool-list" class="tool-list"></div>
+      </section>
+      <section id="jobs" class="tab-panel" hidden>
+        <div class="eyebrow">ON YOUR DESKTOP</div>
+        <h1>In motion.</h1>
+        <p class="intro">Live output, current jobs and stop controls.</p>
+        <button id="refresh-jobs" class="button secondary">
+          Refresh host status ↻
+        </button>
+        <div id="job-list" class="job-list"></div>
+      </section>
+      <section id="files" class="tab-panel" hidden>
+        <div class="eyebrow">BUILT IN YOUR LAB</div>
+        <h1>Made real.</h1>
+        <p class="intro">
+          Download STEP, STL, simulation results and other artifacts from your
+          desktop.
+        </p>
+        <button id="refresh-files" class="button secondary">
+          Refresh artifacts ↻
+        </button>
+        <div id="file-list" class="file-list"></div>
+      </section>
+      <section id="more" class="tab-panel" hidden>
+        <div class="eyebrow">MAKE IT YOURS</div>
+        <h1>Your pocket<br /><em>workbench.</em></h1>
+        <div class="settings-section">
+          <h2>Connect your desktop</h2>
+          <p>
+            In Dino Lab desktop, open <strong>Phone access</strong>, enable the
+            private Tailscale link and scan its QR code. Both devices need
+            Tailscale connected.
+          </p>
+          <button id="show-pair" class="button primary">
+            Enter pairing key</button
+          ><button id="unpair" class="text-button">Unpair this phone</button>
+        </div>
+        <div class="settings-section">
+          <h2>Keep Dino on your Home Screen</h2>
+          <p id="install-help">
+            On iPhone: Share → Add to Home Screen. On Android: browser menu →
+            Install app or Add to Home screen. Use the private HTTPS link.
+          </p>
+          <button id="install-app" class="button secondary" hidden>
+            Install Dino Lab
+          </button>
+        </div>
+        <div class="settings-section">
+          <h2>Field guides</h2>
+          <div id="guide-list"></div>
+        </div>
+        <p class="footnote">
+          Phone control requires the host computer to be awake, with Dino phone
+          access running. Hosted demos run in your phone browser. Offline mode
+          keeps this workbench available; local jobs need the host connection.
+        </p>
+        <p class="version">DINO LAB / POCKET STUDIO</p>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Pocket navigation">
+      <button data-tab="studio" class="active"><span>◈</span>Studio</button
+      ><button data-tab="jobs"><span>≋</span>Jobs</button
+      ><button data-tab="files"><span>▱</span>Files</button
+      ><button data-tab="more"><span>⋯</span>More</button>
+    </nav>
+    <dialog id="sheet">
+      <div class="sheet-header">
+        <span class="eyebrow" id="sheet-label">DINO LAB</span
+        ><button id="close-sheet" class="close-button" aria-label="Close">
+          ×
+        </button>
+      </div>
+      <h2 id="sheet-title"></h2>
+      <div id="sheet-body"></div>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

@@ -2,6 +2,11 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
   "lab",
   Object.freeze({
+    phoneInfo: () => ipcRenderer.invoke("lab:phone-info"),
+    phoneStart: () => ipcRenderer.invoke("lab:phone-start"),
+    phonePrivate: () => ipcRenderer.invoke("lab:phone-private"),
+    phoneStop: () => ipcRenderer.invoke("lab:phone-stop"),
+    phonePreview: () => ipcRenderer.invoke("lab:phone-preview"),
     initialize: () => ipcRenderer.invoke("lab:initialize"),
     onBootstrap: (callback) =>
       ipcRenderer.on("lab:bootstrap-log", (_event, text) => callback(text)),
