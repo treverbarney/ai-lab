@@ -1,6 +1,9 @@
 # Neural Track
 
-Place the forked visualizers and training code here as git submodules.
+The visualizers and training code are pinned Git submodules. Run
+`bash setup/add-neural-submodules.sh` from the repository to restore all four
+projects and their nested submodules. Install each tool’s dependencies only when
+you need it. The desktop launcher works without installing or running these tools.
 
 ## Recommended layout
 ```

@@ -1,0 +1,12 @@
+[submodule "neural/llm-viz"]
+	path = neural/llm-viz
+	url = https://github.com/bbycroft/llm-viz
+[submodule "neural/transformer-explainer"]
+	path = neural/transformer-explainer
+	url = https://github.com/poloclub/transformer-explainer
+[submodule "neural/tensorspace"]
+	path = neural/tensorspace
+	url = https://github.com/tensorspace-team/tensorspace
+[submodule "neural/minimind"]
+	path = neural/minimind
+	url = https://github.com/jingyaogong/minimind
