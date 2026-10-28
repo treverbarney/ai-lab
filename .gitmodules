@@ -10,3 +10,12 @@
 [submodule "neural/minimind"]
 	path = neural/minimind
 	url = https://github.com/jingyaogong/minimind
+[submodule "engineering/text-to-cad"]
+	path = engineering/text-to-cad
+	url = https://github.com/treverbarney/text-to-cad.git
+[submodule "engineering/fusion360-mcp"]
+	path = engineering/fusion360-mcp
+	url = https://github.com/ignaciomolini/mcp-fusion360.git
+[submodule "engineering/freecad-mcp"]
+	path = engineering/freecad-mcp
+	url = https://github.com/neka-nat/freecad-mcp.git
