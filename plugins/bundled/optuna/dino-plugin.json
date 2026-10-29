@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-optuna",
+  "name": "Optuna · Automatic experiments",
+  "version": "1.0.0",
+  "description": "Search learning rates for a small CPU regression task; record trial scores.",
+  "homepage": "https://github.com/optuna/optuna",
+  "resources": "Small Python runtime; bounded trial count. Real objectives determine total compute.",
+  "settings": {
+    "trials": {
+      "type": "integer",
+      "label": "Trial budget",
+      "min": 1,
+      "max": 12,
+      "default": 4
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "optuna",
+            "install",
+            "${workspace}",
+            "${setting:trials}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "optuna",
+            "sample",
+            "${workspace}",
+            "${setting:trials}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "optuna",
+            "check",
+            "${workspace}",
+            "${setting:trials}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  }
+}

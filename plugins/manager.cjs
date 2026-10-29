@@ -30,9 +30,46 @@ function command(v) {
   )
     throw Error("Command args must be a bounded array of strings.");
   if (v.cwd !== undefined) text(v.cwd, 1000);
+  if (/\$\{setting:/.test(v.command) || /\$\{setting:/.test(v.cwd || ""))
+    throw Error("Settings can only substitute command arguments.");
   for (const value of [v.command, ...v.args, v.cwd || ""])
-    if (/\$\{(?!plugin\}|workspace\}|artifacts\}|node\})/.test(value))
+    if (
+      /\$\{(?!plugin\}|workspace\}|artifacts\}|node\}|app\}|setting:[a-z][a-zA-Z0-9]*\})/.test(
+        value,
+      )
+    )
       throw Error("Unknown plugin placeholder.");
+}
+function validateFields(fields) {
+  if (!plain(fields) || Object.keys(fields).length > 12)
+    throw Error("Invalid settings schema.");
+  for (const [key, f] of Object.entries(fields)) {
+    if (
+      !/^[a-z][a-zA-Z0-9]*$/.test(key) ||
+      !plain(f) ||
+      !["integer", "text", "artifact", "enum"].includes(f.type)
+    )
+      throw Error("Invalid setting field.");
+    text(f.label, 80);
+    if (
+      f.type === "integer" &&
+      (!Number.isInteger(f.min) || !Number.isInteger(f.max) || f.min > f.max)
+    )
+      throw Error("Integer settings need a range.");
+    if (
+      f.type === "artifact" &&
+      (!Array.isArray(f.extensions) ||
+        f.extensions.some((x) => typeof x !== "string" || !/^\w+$/.test(x)))
+    )
+      throw Error("Artifact settings need extensions.");
+    if (
+      f.type === "enum" &&
+      (!Array.isArray(f.options) ||
+        !f.options.length ||
+        f.options.some((x) => typeof x !== "string"))
+    )
+      throw Error("Enum settings need options.");
+  }
 }
 function validate(m) {
   if (
@@ -64,6 +101,32 @@ function validate(m) {
     )
       throw Error("Actions need 1–10 steps.");
     action.steps.forEach(command);
+  }
+  if (m.settings !== undefined) validateFields(m.settings);
+  if (m.resources !== undefined) text(m.resources, 1000);
+  if (m.view !== undefined) {
+    if (!plain(m.view)) throw Error("Invalid view.");
+    if (
+      m.view.port !== undefined &&
+      (!Number.isInteger(m.view.port) ||
+        m.view.port < 1024 ||
+        m.view.port > 65535)
+    )
+      throw Error("Invalid view port.");
+    if (
+      m.view.path !== undefined &&
+      (typeof m.view.path !== "string" ||
+        !m.view.path.startsWith("/") ||
+        m.view.path.startsWith("//") ||
+        /[?#\\]/.test(m.view.path) ||
+        m.view.path.includes(".."))
+    )
+      throw Error("Invalid view path.");
+    if (
+      !m.view.port &&
+      !["/studio/cad.html", "/studio/flows.html"].includes(m.view.path)
+    )
+      throw Error("Use a supported bundled view or a loopback port.");
   }
   if (m.mcp !== undefined) command(m.mcp);
   if (!Object.keys(m.actions).length && !m.mcp)
@@ -196,6 +259,9 @@ class Plugins {
           version: m.version,
           description: m.description,
           homepage: m.homepage,
+          settings: m.settings || {},
+          resources: m.resources || "Resource use depends on the adapter.",
+          view: m.view || null,
           enabled: data[dir] === p.digest,
           changed: Boolean(data[dir] && data[dir] !== p.digest),
           actions: Object.entries(m.actions).map(([id, a]) => ({
@@ -277,13 +343,14 @@ class Plugins {
   expand(value, p) {
     const root = this.root();
     return value.replace(
-      /\$\{(plugin|workspace|artifacts|node)\}/g,
+      /\$\{(plugin|workspace|artifacts|node|app)\}/g,
       (_, k) =>
         ({
           plugin: p.directory,
           workspace: root,
           artifacts: path.join(root, ".dino", "artifacts"),
           node: process.execPath,
+          app: path.join(__dirname, ".."),
         })[k],
     );
   }
@@ -300,7 +367,7 @@ class Plugins {
       cwd,
     };
   }
-  async recipe(id, action) {
+  async recipe(id, action, options = {}) {
     const p = await this.approved(id);
     const a = p.manifest.actions[action];
     if (!Object.hasOwn(p.manifest.actions, action) || !a)
@@ -308,7 +375,99 @@ class Plugins {
     await fs.mkdir(path.join(this.root(), ".dino", "artifacts"), {
       recursive: true,
     });
-    return Promise.all(a.steps.map((s) => this.step(s, p)));
+    const values = await this.validateSettings(
+      p.manifest,
+      options.settings || (await this.settings(id)),
+    );
+    const steps = a.steps.map((s) => ({
+      ...s,
+      args: s.args.map((arg) =>
+        arg.replace(/\$\{setting:([a-z][a-zA-Z0-9]*)\}/g, (_, key) => {
+          if (!Object.hasOwn(values, key))
+            throw Error("Unknown setting placeholder.");
+          return String(values[key]);
+        }),
+      ),
+    }));
+    return Promise.all(steps.map((s) => this.step(s, p)));
+  }
+  async validateSettings(m, input = {}) {
+    if (!plain(input)) throw Error("Settings must be an object.");
+    const fields = m.settings || {},
+      values = {};
+    if (Object.keys(input).some((k) => !Object.hasOwn(fields, k)))
+      throw Error("Unknown setting.");
+    for (const [key, f] of Object.entries(fields)) {
+      const v = input[key] ?? f.default ?? "";
+      if (f.type === "integer") {
+        if (!Number.isInteger(v) || v < f.min || v > f.max)
+          throw Error(f.label + ": value outside allowed range.");
+      } else {
+        if (
+          typeof v !== "string" ||
+          v.length > (f.maxLength || 200) ||
+          v.includes("\0")
+        )
+          throw Error("Invalid " + f.label);
+        if (f.type === "enum" && !f.options.includes(v))
+          throw Error("Invalid option.");
+        if (f.type === "artifact" && v) {
+          if (
+            path.basename(v) !== v ||
+            v.startsWith(".") ||
+            !f.extensions.includes(path.extname(v).slice(1).toLowerCase())
+          )
+            throw Error("Choose a compatible artifact.");
+          const base = await fs.realpath(
+            path.join(this.root(), ".dino", "artifacts"),
+          );
+          const file = await fs.realpath(path.join(base, v));
+          if (
+            !file.startsWith(base + path.sep) ||
+            !(await fs.stat(file)).isFile()
+          )
+            throw Error("Artifact unavailable.");
+        }
+      }
+      values[key] = v;
+    }
+    return values;
+  }
+  async settings(id) {
+    const p = await this.approved(id);
+    let saved = {};
+    try {
+      saved =
+        JSON.parse(
+          await fs.readFile(
+            path.join(this.root(), ".dino", "plugin-settings.json"),
+            "utf8",
+          ),
+        )[id] || {};
+    } catch (e) {
+      if (e.code !== "ENOENT") throw e;
+    }
+    return this.validateSettings(p.manifest, saved);
+  }
+  async saveSettings(id, values) {
+    const p = await this.approved(id);
+    const result = await this.validateSettings(p.manifest, values);
+    // Serialize settings and approval writes through the same workspace lock.
+    const op = this.lock.then(async () => {
+      const file = path.join(this.root(), ".dino", "plugin-settings.json");
+      let data = {};
+      try {
+        data = JSON.parse(await fs.readFile(file, "utf8"));
+      } catch (e) {
+        if (e.code !== "ENOENT") throw e;
+      }
+      data[id] = result;
+      await fs.writeFile(file + ".tmp", JSON.stringify(data, null, 2));
+      await fs.rename(file + ".tmp", file);
+      return result;
+    });
+    this.lock = op.catch(() => {});
+    return op;
   }
   async connection(id) {
     const p = await this.approved(id);

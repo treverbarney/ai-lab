@@ -7,3 +7,8 @@ dist/
 __pycache__/
 
 workbench/viewer.js
+
+studio/cad.js
+studio/flow.js
+studio/flow.css
+studio/vendor/

@@ -6,6 +6,8 @@ const { neural, engineering, docs } = require("../dashboard/catalog.js");
 const workspace = require("../desktop/workspace.cjs");
 const { Workbench } = require("../orchestrator/workbench.cjs");
 const { Notices } = require("../orchestrator/notices.cjs");
+const { Views } = require("../integrations/views.cjs");
+const { Flows } = require("../integrations/flows.cjs");
 const { pluginAction } = require("../plugins/service.cjs");
 const packageInfo = require("../package.json");
 const tools = [...neural, ...engineering];
@@ -22,12 +24,12 @@ function equal(a, b) {
     y = Buffer.from(hash(b));
   return crypto.timingSafeEqual(x, y);
 }
-async function body(req) {
+async function body(req, max = 32768) {
   let size = 0;
   const chunks = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > 32768) throw new Error("Request too large.");
+    if (size > max) throw new Error("Request too large.");
     chunks.push(chunk);
   }
   return JSON.parse(Buffer.concat(chunks).toString() || "{}");
@@ -53,6 +55,8 @@ class PhoneServer {
       launchNative,
       port,
     });
+    this.views = new Views(this);
+    this.flows = new Flows(this);
     this.workbench = new Workbench(getRoot, runtime);
     this.notices = new Notices(getRoot);
     this.server = null;
@@ -72,6 +76,9 @@ class PhoneServer {
       }),
     );
     this.server = server;
+    server.on("upgrade", (req, socket, head) =>
+      this.views.upgrade(req, socket, head),
+    );
     server.requestTimeout = 15000;
     server.headersTimeout = 10000;
     try {
@@ -178,6 +185,13 @@ class PhoneServer {
     const url = new URL(req.url, origin);
     if (req.headers.origin && req.headers.origin !== origin)
       return json(res, 403, { error: "Request origin rejected." });
+    if (url.pathname.startsWith("/views/")) {
+      if (!this.session(req))
+        return json(res, 401, { error: "Pair this browser first." });
+      if (req.method !== "GET" && req.headers.origin !== origin)
+        return json(res, 403, { error: "Origin rejected." });
+      return this.views.request(req, res);
+    }
     if (!["GET", "POST"].includes(req.method))
       return json(res, 405, { error: "Method unavailable." });
     if (
@@ -234,6 +248,7 @@ class PhoneServer {
         );
         if (cookie) this.sessions.delete(hash(cookie[1]));
         await this.notices.remove(session.id);
+        this.views.revoke(session.id);
         for (const entry of this.streams)
           if (entry.session === session) entry.res.end();
         res.setHeader(
@@ -241,6 +256,66 @@ class PhoneServer {
           "dino_phone=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0",
         );
         return json(res, 200, { paired: false });
+      }
+      if (
+        url.pathname === "/api/integration-release-notes" &&
+        req.method === "GET"
+      )
+        return json(res, 200, []);
+      if (url.pathname === "/api/plugin-settings") {
+        if (req.method === "GET")
+          return json(
+            res,
+            200,
+            await this.plugins.settings(url.searchParams.get("id")),
+          );
+        const input = await body(req);
+        return json(
+          res,
+          200,
+          await this.plugins.saveSettings(input.id, input.values),
+        );
+      }
+      if (url.pathname === "/api/flows") {
+        if (req.method === "GET")
+          return json(res, 200, await this.flows.state());
+        const input = await body(req);
+        if (input.op === "cancel") {
+          await this.flows.cancel(input.id);
+          return json(res, 200, { accepted: true });
+        }
+        return json(res, 200, await this.flows.submit(input));
+      }
+      if (url.pathname === "/api/import" && req.method === "POST") {
+        const input = await body(req, 28 * 1024 * 1024),
+          name = input.name;
+        if (
+          typeof name !== "string" ||
+          path.basename(name) !== name ||
+          name.startsWith(".") ||
+          !/\.(onnx|npy|tflite|pt|pth|gguf|step|stp|iges|igs|fcstd|stl|obj|glb|gltf|ply|off|3mf|json|jsonl|rrd)$/i.test(
+            name,
+          )
+        )
+          throw Error("Unsupported artifact.");
+        if (
+          typeof input.data !== "string" ||
+          input.data.length % 4 !== 0 ||
+          /[^A-Za-z0-9+/=]/.test(input.data) ||
+          /=/.test(input.data.slice(0, -2)) ||
+          (input.data.endsWith("=") === false && input.data.includes("="))
+        )
+          throw Error("Invalid file data.");
+        const data = Buffer.from(input.data, "base64");
+        if (data.length > 20 * 1024 * 1024)
+          throw Error(
+            "Phone imports are limited to 20 MB. Import larger models on desktop.",
+          );
+        const dir = path.join(this.getRoot(), ".dino", "artifacts");
+        await fs.mkdir(dir, { recursive: true });
+        const filename = crypto.randomUUID().slice(0, 8) + "-" + name;
+        await fs.writeFile(path.join(dir, filename), data, { flag: "wx" });
+        return json(res, 200, { name: filename });
       }
       if (url.pathname === "/api/plugins" && req.method === "GET")
         return json(res, 200, (await this.plugins?.list()) || []);
@@ -405,6 +480,43 @@ class PhoneServer {
         path.join(__dirname, "..", "workbench", f),
       ]),
     );
+    for (const f of [
+      "index.html",
+      "app.js",
+      "styles.css",
+      "cad.html",
+      "cad.js",
+      "flows.html",
+      "flow.js",
+      "flow.css",
+    ])
+      shared.set("/studio/" + f, path.join(__dirname, "..", "studio", f));
+    if (/^\/studio\/vendor\/[a-zA-Z0-9_.-]+$/.test(url.pathname))
+      shared.set(
+        url.pathname,
+        path.join(
+          __dirname,
+          "..",
+          "studio",
+          "vendor",
+          path.basename(url.pathname),
+        ),
+      );
+    if (url.pathname.startsWith("/studio/"))
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    if (url.pathname.startsWith("/studio/"))
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'",
+      );
+    if (
+      url.pathname === "/studio/cad.html" ||
+      url.pathname.startsWith("/studio/vendor/")
+    )
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'self'; base-uri 'none'",
+      );
     const relative = staticFiles.get(url.pathname);
     let file;
     if (shared.has(url.pathname)) file = shared.get(url.pathname);
@@ -418,6 +530,8 @@ class PhoneServer {
       ".css": "text/css",
       ".webmanifest": "application/manifest+json",
       ".png": "image/png",
+      ".wasm": "application/wasm",
+      ".txt": "text/plain",
     };
     res.writeHead(200, {
       "Content-Type": types[path.extname(file)],
@@ -426,6 +540,8 @@ class PhoneServer {
     res.end(await fs.readFile(file));
   }
   async close() {
+    await this.flows.close();
+    this.views.close();
     clearTimeout(this.streamTimer);
     if (this.notice) {
       this.runtime.removeListener("job-finished", this.notice);

@@ -1,5 +1,8 @@
 # Dino Lab plugins
 
+For settings forms, embedded tool views and curated adapters, see the
+[integration studio guide](integrations.md).
+
 Plugins are small local adapters: a JSON manifest, optional helper scripts, and
 fixed commands. They extend the toolkit without modifying the desktop, phone, or
 orchestrator. The eight built-in adapters continue to work unchanged. Upstream

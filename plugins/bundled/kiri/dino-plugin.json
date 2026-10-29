@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-kiri",
+  "name": "Kiri:Moto + Mesh:Tool · Fabrication",
+  "version": "1.0.0",
+  "description": "Local slicing, CNC/laser preparation and browser mesh repair.",
+  "homepage": "https://github.com/GridSpace/grid-apps",
+  "resources": "Optional upstream checkout and npm dependencies. Slicing workload depends on model complexity.",
+  "settings": {},
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "kiri",
+            "install",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "kiri",
+            "start",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "kiri",
+            "check",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4324,
+    "stripPrefix": false,
+    "path": "/kiri/"
+  }
+}

@@ -2,6 +2,7 @@
 const $ = (selector) => document.querySelector(selector);
 const catalog = window.labCatalog;
 let pluginList = [];
+const goStudio = new URLSearchParams(location.hash.slice(1)).has("studio");
 const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
   "workbench",
 );
@@ -440,21 +441,19 @@ function renderJobs() {
       card.querySelector(".job-head span").textContent = job.state;
       card.querySelector("p").textContent =
         job.action + " / " + new Date(job.startedAt).toLocaleTimeString();
-      card
-        .querySelector(".job-buttons")
-        .append(
-          button("Open output →", "text-button", () =>
-            openTool(
-              tools.find((t) => t.id === job.id) ||
-                pluginList.find((p) => p.id === job.id) || {
-                  id: job.id,
-                  name: job.id,
-                  actions: [],
-                  enabled: false,
-                },
-            ),
+      card.querySelector(".job-buttons").append(
+        button("Open output →", "text-button", () =>
+          openTool(
+            tools.find((t) => t.id === job.id) ||
+              pluginList.find((p) => p.id === job.id) || {
+                id: job.id,
+                name: job.id,
+                actions: [],
+                enabled: false,
+              },
           ),
-        );
+        ),
+      );
       if (["running", "stopping"].includes(job.state))
         card
           .querySelector(".job-buttons")
@@ -644,6 +643,11 @@ window.addEventListener("offline", () => {
     },
   );
   $("#more").append(notify);
+  const studioLink = document.createElement("a");
+  studioLink.href = "/studio/index.html";
+  studioLink.className = "button secondary";
+  studioLink.textContent = "Integration studio ↗";
+  $("#studio").append(studioLink);
   $("#studio").append(button("Plugins →", "button secondary", openPlugins));
   renderTools();
   showConnection();
@@ -660,6 +664,7 @@ window.addEventListener("offline", () => {
       toast(error.message);
     }
   } else await refresh();
+  if (goStudio && connected) location.assign("/studio/index.html");
   if (goWorkbench && connected) location.assign("/workbench/index.html");
 })().catch((error) => toast(error.message));
 

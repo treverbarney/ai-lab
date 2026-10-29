@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-netron",
+  "name": "Netron · Model inspector",
+  "version": "1.0.0",
+  "description": "Inspect actual model graphs, layers and tensors.",
+  "homepage": "https://github.com/lutzroeder/netron",
+  "resources": "Small runtime; model size determines browser memory. No model download.",
+  "settings": {
+    "file": {
+      "type": "artifact",
+      "label": "Model file",
+      "extensions": [
+        "onnx",
+        "tflite",
+        "pt",
+        "pth",
+        "npy",
+        "gguf"
+      ],
+      "default": ""
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "netron",
+            "install",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "netron",
+            "sample",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "netron",
+            "start",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "netron",
+            "check",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4321,
+    "stripPrefix": true,
+    "path": "/"
+  }
+}

@@ -63,6 +63,16 @@ function select() {
     ...(project?.artifacts || []).map((name) => {
       const el = document.createElement("p");
       el.textContent = name;
+      const link = document.createElement("a");
+      link.href =
+        "/studio/index.html?file=" +
+        encodeURIComponent(name) +
+        "&plugin=" +
+        (/\.(stl|step|stp|iges|igs|glb|fcstd|obj)$/i.test(name)
+          ? "plugin-cad-viewer"
+          : "plugin-netron");
+      link.textContent = " Open in integration studio ↗";
+      el.append(link);
       return el;
     }),
   );
@@ -106,11 +116,16 @@ function render() {
           button(
             j.state === "queued" ? "Cancel queued job" : "Stop job",
             async () => {
-              await fetch("/api/action", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: j.id, action: "stop" }),
-              });
+              await fetch(
+                j.id.startsWith("plugin-")
+                  ? "/api/plugin-action"
+                  : "/api/action",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id: j.id, action: "stop" }),
+                },
+              );
               await refresh();
             },
           ),

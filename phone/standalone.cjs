@@ -19,9 +19,9 @@ const runtime = new Runtime({
   root,
   urls,
   env: environment(),
-  buildRecipe: (workspaceRoot, id, action, localUrls) =>
+  buildRecipe: (workspaceRoot, id, action, localUrls, options) =>
     id.startsWith("plugin-")
-      ? plugins.recipe(id, action)
+      ? plugins.recipe(id, action, options)
       : recipe(workspaceRoot, id, action, localUrls),
 });
 const connections = new Connections(environment());

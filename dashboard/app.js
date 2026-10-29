@@ -853,6 +853,11 @@ async function pluginsPanel() {
   const controls = document.createElement("div");
   controls.className = "panel-actions";
   controls.append(
+    button("Open integration studio ↗", "button primary", openStudio),
+    button("Import artifact", "button subtle", async () => {
+      const name = await window.lab.importArtifact();
+      if (name) toast("Imported " + name);
+    }),
     button("Import plugin folder", "button primary", async () => {
       const id = await window.lab.importPlugin();
       if (id) await pluginPanel(id);
@@ -873,6 +878,27 @@ async function pluginsPanel() {
         "panel-note",
       ),
     );
+  const curated = section(body, "Add a curated integration");
+  for (const tool of await window.lab.pluginsCatalog()) {
+    const card = section(curated, tool.name);
+    card.append(
+      paragraph(tool.description),
+      paragraph(tool.resources, "panel-note"),
+    );
+    const installed = list.find((p) => p.id === "plugin-" + tool.key);
+    card.append(
+      button(
+        installed ? "Review installed adapter" : "Add & review adapter",
+        "button subtle",
+        async () => {
+          const id = installed
+            ? installed.id
+            : await window.lab.importPlugin(tool.key);
+          await pluginPanel(id);
+        },
+      ),
+    );
+  }
   for (const plugin of list) {
     const card = section(
       body,
@@ -996,3 +1022,14 @@ async function pluginPanel(id) {
   }
 }
 $("#open-plugins").addEventListener("click", action(pluginsPanel));
+
+async function openStudio() {
+  requireDesktop();
+  await window.lab.openStudio();
+  $("#detail-dialog").close();
+  activeTool = null;
+  $("#view-title").textContent = "Dino Integration Studio";
+  $("#view-mode").textContent = "Local tools · paired host connection";
+  $("#view-toolbar").hidden = false;
+  document.body.classList.add("workspace-open");
+}

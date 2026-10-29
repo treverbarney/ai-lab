@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-llama",
+  "name": "llama.cpp · Local assistant backend",
+  "version": "1.0.0",
+  "description": "Start an installed llama-server with a chosen local GGUF model.",
+  "homepage": "https://github.com/ggml-org/llama.cpp",
+  "resources": "Requires llama-server on PATH and local weights. No automatic model download; memory depends on weights.",
+  "settings": {
+    "file": {
+      "type": "artifact",
+      "label": "GGUF model",
+      "extensions": [
+        "gguf"
+      ],
+      "default": ""
+    },
+    "threads": {
+      "type": "integer",
+      "label": "CPU threads",
+      "min": 1,
+      "max": 8,
+      "default": 2
+    }
+  },
+  "actions": {
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "llama",
+            "check",
+            "${workspace}",
+            "${setting:file}",
+            "${setting:threads}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "llama",
+            "start",
+            "${workspace}",
+            "${setting:file}",
+            "${setting:threads}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4325,
+    "stripPrefix": true,
+    "path": "/"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "dino-lab",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "One local Dino workspace for neural exploration, training, CAD and simulation",
   "author": "Trever Barney",
@@ -14,14 +14,15 @@
     "package:mac": "node desktop/package.cjs --platform darwin --arch arm64",
     "phone": "node phone/standalone.cjs",
     "phone:private": "node phone/standalone.cjs --tailscale",
-    "build:viewer": "esbuild workbench/viewer-source.js --bundle --format=esm --minify --outfile=workbench/viewer.js",
+    "build:viewer": "esbuild workbench/viewer-source.js --bundle --format=esm --minify --outfile=workbench/viewer.js && node integrations/build.cjs",
     "agent:request": "node workbench/agent.cjs",
     "prestart": "npm run build:viewer",
     "prepackage": "npm run build:viewer",
     "prepackage:mac": "npm run build:viewer",
     "prephone": "npm run build:viewer",
     "prephone:private": "npm run build:viewer",
-    "plugins": "node plugins/cli.cjs"
+    "plugins": "node plugins/cli.cjs",
+    "test:studio": "node test/studio.e2e.cjs"
   },
   "engines": {
     "node": ">=22.12"
@@ -33,7 +34,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
+    "@xyflow/react": "12.12.0",
+    "occt-import-js": "0.0.23",
+    "online-3d-viewer": "0.18.0",
     "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "three": "0.186.1",
     "web-push": "3.6.7"
   },

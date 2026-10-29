@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-rerun",
+  "name": "Rerun · Simulation replay",
+  "version": "1.0.0",
+  "description": "Record a short 3D motion trajectory as a portable .rrd recording.",
+  "homepage": "https://github.com/rerun-io/rerun",
+  "resources": "Optional SDK; small demo recording. Large sensor logs need more memory.",
+  "settings": {
+    "file": {
+      "type": "artifact",
+      "label": "Recording",
+      "extensions": [
+        "rrd"
+      ],
+      "default": ""
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rerun",
+            "install",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rerun",
+            "sample",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rerun",
+            "check",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rerun",
+            "start",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4326,
+    "stripPrefix": true,
+    "path": "/"
+  }
+}

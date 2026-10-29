@@ -42,6 +42,17 @@ plus device pairing, and revokes its sessions when stopped. It does not expose
 a public server. See [the phone guide](docs/phone.md). Terminal users can instead
 run `npm run phone:private` from the repo (or `npm run phone` for a localhost preview).
 
+## Integration studio (0.6)
+
+Open **Plugins → Add & review adapter** to enable an integration, then **Open
+integration studio**. Netron, Online 3D Viewer, marimo and Aim have starter flows;
+optional adapters add MLX, Rerun, reinforcement learning, Optuna, visual workflows,
+fabrication tools and a local llama.cpp server. Settings forms, artifact handoffs
+and embedded views work through the shared paired host connection. Runtimes and
+model downloads stay on demand. See [the studio guide](docs/integrations.md) and
+[the validation record](docs/integration-validation.md) for platform requirements
+and what has actually been tested.
+
 ## Extend it with plugins
 
 Open **Plugins** to import a local adapter, review its commands, and enable it.

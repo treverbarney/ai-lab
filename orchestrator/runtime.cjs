@@ -35,7 +35,7 @@ class Runtime extends EventEmitter {
     job.log = (job.log + text).slice(-30000);
     this.emit("change");
   }
-  async start(id, action) {
+  async start(id, action, options = {}) {
     const heavy = ["install", "sample", "train", "run", "check"].includes(
       action,
     );
@@ -45,13 +45,13 @@ class Runtime extends EventEmitter {
       ["running", "stopping"].includes(this.jobs.get(id)?.state)
     )
       throw new Error("This tool already has an active job. Stop it first.");
-    if (!heavy) return this.startNow(id, action);
+    if (!heavy) return this.startNow(id, action, options);
     if (!this.root) throw new Error("Connect a repository first.");
     if (this.closing) throw Error("Host is stopping.");
     if (!this.heavy) {
       this.heavy = id;
       try {
-        const value = await this.startNow(id, action);
+        const value = await this.startNow(id, action, options);
         this.jobs.get(id).done.finally(() => {
           this.heavy = null;
           this.drain();
@@ -68,6 +68,7 @@ class Runtime extends EventEmitter {
     const job = {
       id,
       action,
+      options,
       state: "queued",
       startedAt: new Date().toISOString(),
       log: "Waiting for the heavy-job slot.\n",
@@ -93,7 +94,7 @@ class Runtime extends EventEmitter {
     this.draining = new Promise((resolve) => (drainFinished = resolve));
     this.heavy = next.id;
     try {
-      await this.startNow(next.id, next.action);
+      await this.startNow(next.id, next.action, next.options);
       const job = this.jobs.get(next.id);
       await job.done;
       Object.assign(next, { state: job.state, log: job.log });
@@ -109,7 +110,7 @@ class Runtime extends EventEmitter {
       this.drain();
     }
   }
-  async startNow(id, action) {
+  async startNow(id, action, options = {}) {
     if (!this.root) throw new Error("Connect your Dino Lab repository first.");
     const busy = (key) =>
       this.starting.has(key) ||
@@ -127,13 +128,20 @@ class Runtime extends EventEmitter {
       new Promise((resolve) => (finishStarting = resolve)),
     );
     try {
-      const steps = await this.buildRecipe(this.root, id, action, this.urls());
+      const steps = await this.buildRecipe(
+        this.root,
+        id,
+        action,
+        this.urls(),
+        options,
+      );
       if (steps[0]) await fs.access(steps[0].cwd);
       if (this.closing || this.cancelStarting.has(id))
         throw Error("Job cancelled before start.");
       const job = {
         id,
         action,
+        options,
         state: "running",
         startedAt: new Date().toISOString(),
         log: "",

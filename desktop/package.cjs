@@ -39,6 +39,8 @@ packager({
   asar: true,
   prune: true,
   ignore: [
+    /^\/integrations\/upstream(?:\/|$)/,
+    /^\/studio\/.*-source\.js$/,
     /^\/neural\/(?!README\.md$)/,
     /^\/engineering\/(text-to-cad|fusion360-mcp|freecad-mcp)(?:\/|$)/,
     /^\/\.git(?:\/|$)/,

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-workflow",
+  "name": "React Flow · Visual workflows",
+  "version": "1.0.0",
+  "description": "Connect enabled actions into a reviewed sequence using the shared queue.",
+  "homepage": "https://github.com/xyflow/xyflow",
+  "resources": "Browser editor. Executing a flow uses the selected tools’ resource requirements.",
+  "settings": {},
+  "actions": {
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "workflow",
+            "check",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "path": "/studio/flows.html"
+  }
+}

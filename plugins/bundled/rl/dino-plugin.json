@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-rl",
+  "name": "Stable-Baselines3 · Reinforcement learning",
+  "version": "1.0.0",
+  "description": "Train and evaluate a tiny CartPole policy with PPO on CPU.",
+  "homepage": "https://github.com/DLR-RM/stable-baselines3",
+  "resources": "Large PyTorch dependency. CPU-only install on Linux; sample capped at 4,096 steps.",
+  "settings": {
+    "steps": {
+      "type": "integer",
+      "label": "Training timesteps",
+      "min": 128,
+      "max": 4096,
+      "default": 512
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rl",
+            "install",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rl",
+            "sample",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "rl",
+            "check",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  }
+}

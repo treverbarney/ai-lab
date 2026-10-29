@@ -19,3 +19,6 @@
 [submodule "engineering/freecad-mcp"]
 	path = engineering/freecad-mcp
 	url = https://github.com/neka-nat/freecad-mcp.git
+[submodule "integrations/upstream/kiri"]
+	path = integrations/upstream/kiri
+	url = https://github.com/GridSpace/grid-apps.git

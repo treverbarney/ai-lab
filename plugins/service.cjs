@@ -19,6 +19,13 @@ async function pluginAction(plugins, runtime, connections, input) {
     return result;
   }
   if (action === "call") return connections.call(id, input.name, input.args);
-  return runtime.start(id, action);
+  return runtime.start(id, action, {
+    settings: input.settings
+      ? await plugins.validateSettings(
+          (await plugins.approved(id)).manifest,
+          input.settings,
+        )
+      : await plugins.settings(id),
+  });
 }
 module.exports = { pluginAction };

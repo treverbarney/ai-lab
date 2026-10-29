@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-cad-viewer",
+  "name": "Online 3D Viewer · Engineering review",
+  "version": "1.0.0",
+  "description": "Local browser previews for STEP, IGES, FreeCAD and mesh formats.",
+  "homepage": "https://github.com/kovacsv/Online3DViewer",
+  "resources": "Browser/WebAssembly on demand. Large assemblies can use substantial memory.",
+  "settings": {
+    "file": {
+      "type": "artifact",
+      "label": "CAD / mesh file",
+      "extensions": [
+        "step",
+        "stp",
+        "iges",
+        "igs",
+        "fcstd",
+        "stl",
+        "obj",
+        "glb",
+        "gltf",
+        "ply",
+        "off",
+        "3mf"
+      ],
+      "default": ""
+    }
+  },
+  "actions": {
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "cad-viewer",
+            "check",
+            "${workspace}",
+            "${setting:file}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "path": "/studio/cad.html"
+  }
+}

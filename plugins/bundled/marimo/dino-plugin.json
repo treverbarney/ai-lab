@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-marimo",
+  "name": "marimo · Interactive experiments",
+  "version": "1.0.0",
+  "description": "A live gradient-descent lesson with sliders, results and editable notebook source.",
+  "homepage": "https://github.com/marimo-team/marimo",
+  "resources": "Moderate Python runtime. Included lesson uses small CPU experiments.",
+  "settings": {},
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "marimo",
+            "install",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "marimo",
+            "sample",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "marimo",
+            "start",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "marimo",
+            "check",
+            "${workspace}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4322,
+    "stripPrefix": false,
+    "path": "/"
+  }
+}

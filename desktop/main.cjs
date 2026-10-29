@@ -80,10 +80,16 @@ function handle(channel, fn) {
   });
 }
 async function showView(id, mode) {
-  const item = catalog.neural.find((x) => x.id === id && x.url);
+  let item = catalog.neural.find((x) => x.id === id && x.url);
+  if (id === "studio") item = { name: "Dino Integration Studio", url: "local" };
   if (!item || !["hosted", "local"].includes(mode))
     throw new Error("No visualizer available.");
-  const url = mode === "local" ? urls()[id] : item.url;
+  let url = mode === "local" ? urls()[id] : item.url;
+  if (id === "studio") {
+    await phone.start();
+    const info = await phone.info();
+    url = info.localUrl + "#pair=" + info.key + "&studio=1";
+  }
   if (!url) throw new Error("This tool has no local server configured.");
   if (mode === "local" && !(await workspace.probe(url, 45000)))
     throw new Error(
@@ -194,9 +200,9 @@ app.whenReady().then(async () => {
     root,
     urls,
     env: environment(),
-    buildRecipe: (workspaceRoot, id, action, localUrls) =>
+    buildRecipe: (workspaceRoot, id, action, localUrls, options) =>
       id.startsWith("plugin-")
-        ? plugins.recipe(id, action)
+        ? plugins.recipe(id, action, options)
         : recipe(workspaceRoot, id, action, localUrls),
   });
   connections = new Connections(environment());
@@ -282,6 +288,62 @@ app.whenReady().then(async () => {
         ]),
     ),
   }));
+  handle("studio", () => showView("studio", "hosted"));
+  handle("plugins-catalog", () =>
+    require("../integrations/catalog.cjs").catalog.map(
+      ({ key, name, description, resources }) => ({
+        key,
+        name,
+        description,
+        resources,
+      }),
+    ),
+  );
+  handle("artifact-import", async () => {
+    if (!root) throw Error("Connect a workspace first.");
+    const result = await dialog.showOpenDialog(win, {
+      title: "Import model, CAD or dataset into Dino artifacts",
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Lab artifacts",
+          extensions: [
+            "onnx",
+            "npy",
+            "tflite",
+            "pt",
+            "pth",
+            "gguf",
+            "step",
+            "stp",
+            "iges",
+            "igs",
+            "fcstd",
+            "stl",
+            "obj",
+            "glb",
+            "gltf",
+            "ply",
+            "off",
+            "3mf",
+            "json",
+            "jsonl",
+            "rrd",
+          ],
+        },
+      ],
+    });
+    if (result.canceled) return null;
+    const source = result.filePaths[0],
+      folder = path.join(root, ".dino", "artifacts");
+    await fs.mkdir(folder, { recursive: true });
+    const name =
+      require("node:crypto").randomUUID().slice(0, 8) +
+      "-" +
+      path.basename(source);
+    await fs.copyFile(source, path.join(folder, name));
+    return name;
+  });
   handle("plugins-list", () => plugins.list(true));
   handle("plugins-import", async (example = false) => {
     let directory;
@@ -293,7 +355,15 @@ app.whenReady().then(async () => {
         "examples",
         "artifact-report",
       );
-    else {
+    else if (typeof example === "string") {
+      if (
+        !require("../integrations/catalog.cjs").catalog.some(
+          (c) => c.key === example,
+        )
+      )
+        throw Error("Unknown integration.");
+      directory = path.join(__dirname, "..", "plugins", "bundled", example);
+    } else {
       const result = await dialog.showOpenDialog(win, {
         title: "Import a Dino plugin folder containing dino-plugin.json",
         properties: ["openDirectory"],
@@ -427,6 +497,8 @@ app.whenReady().then(async () => {
       throw new Error(
         "Choose the ai-lab folder containing README.md, neural, setup and orchestrator.",
       );
+    await phone.server.flows.close();
+    phone.server.flows.runs = [];
     await runtime.close();
     await connections.close();
     await phone.server.workbench.lock;

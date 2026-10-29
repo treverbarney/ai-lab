@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-mlx",
+  "name": "MLX LM · Apple Silicon models",
+  "version": "1.0.0",
+  "description": "Run a selected small model or LoRA fine-tuning on a prepared local dataset.",
+  "homepage": "https://github.com/ml-explore/mlx-lm",
+  "resources": "Apple Silicon only. Selected weights download on Run/Train; memory varies by model. Start with a small quantized model.",
+  "settings": {
+    "model": {
+      "type": "text",
+      "label": "Hugging Face model ID",
+      "default": "",
+      "maxLength": 160
+    },
+    "prompt": {
+      "type": "text",
+      "label": "Prompt",
+      "default": "Explain gradient descent briefly.",
+      "maxLength": 2000
+    },
+    "file": {
+      "type": "artifact",
+      "label": "Training JSONL",
+      "extensions": [
+        "jsonl"
+      ],
+      "default": ""
+    },
+    "steps": {
+      "type": "integer",
+      "label": "LoRA iterations",
+      "min": 1,
+      "max": 100,
+      "default": 10
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "mlx",
+            "install",
+            "${workspace}",
+            "${setting:model}",
+            "${setting:prompt}",
+            "${setting:file}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "mlx",
+            "check",
+            "${workspace}",
+            "${setting:model}",
+            "${setting:prompt}",
+            "${setting:file}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "run": {
+      "label": "Run selected model",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "mlx",
+            "run",
+            "${workspace}",
+            "${setting:model}",
+            "${setting:prompt}",
+            "${setting:file}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "train": {
+      "label": "Run small LoRA training",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "mlx",
+            "train",
+            "${workspace}",
+            "${setting:model}",
+            "${setting:prompt}",
+            "${setting:file}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  }
+}

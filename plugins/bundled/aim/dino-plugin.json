@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-aim",
+  "name": "Aim · Experiment tracker",
+  "version": "1.0.0",
+  "description": "Compare two real CPU training runs, their loss curves and settings.",
+  "homepage": "https://github.com/aimhubio/aim",
+  "resources": "Moderate runtime and local storage. Sample trains a scalar linear regressor; no model downloads.",
+  "settings": {
+    "steps": {
+      "type": "integer",
+      "label": "Training steps",
+      "min": 10,
+      "max": 500,
+      "default": 60
+    }
+  },
+  "actions": {
+    "install": {
+      "label": "Install runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "aim",
+            "install",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "sample": {
+      "label": "Run starter experiment",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "aim",
+            "sample",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start tool view",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "aim",
+            "start",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check runtime",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": [
+            "${app}/integrations/run.cjs",
+            "aim",
+            "check",
+            "${workspace}",
+            "${setting:steps}"
+          ],
+          "cwd": "${workspace}"
+        }
+      ]
+    }
+  },
+  "view": {
+    "port": 4323,
+    "stripPrefix": false,
+    "path": "/"
+  }
+}
