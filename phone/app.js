@@ -3,6 +3,7 @@ const $ = (selector) => document.querySelector(selector);
 const catalog = window.labCatalog;
 let pluginList = [];
 const goStudio = new URLSearchParams(location.hash.slice(1)).has("studio");
+const goCad = new URLSearchParams(location.hash.slice(1)).has("cad");
 const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
   "workbench",
 );
@@ -648,6 +649,11 @@ window.addEventListener("offline", () => {
   studioLink.className = "button secondary";
   studioLink.textContent = "Integration studio ↗";
   $("#studio").append(studioLink);
+  const cadLink = document.createElement('a');
+  cadLink.href = '/studio/assembly.html';
+  cadLink.className = 'button secondary';
+  cadLink.textContent = 'CAD & assembly ↗';
+  $("#studio").append(cadLink);
   $("#studio").append(button("Plugins →", "button secondary", openPlugins));
   renderTools();
   showConnection();
@@ -664,7 +670,8 @@ window.addEventListener("offline", () => {
       toast(error.message);
     }
   } else await refresh();
-  if (goStudio && connected) location.assign("/studio/index.html");
+  if (goCad && connected) location.assign('/studio/assembly.html');
+  else if (goStudio && connected) location.assign("/studio/index.html");
   if (goWorkbench && connected) location.assign("/workbench/index.html");
 })().catch((error) => toast(error.message));
 

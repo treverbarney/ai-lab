@@ -81,14 +81,14 @@ function handle(channel, fn) {
 }
 async function showView(id, mode) {
   let item = catalog.neural.find((x) => x.id === id && x.url);
-  if (id === "studio") item = { name: "Dino Integration Studio", url: "local" };
+  if (id === "studio" || id === "assembly") item = { name: id === "assembly" ? "Dino CAD & Assembly" : "Dino Integration Studio", url: "local" };
   if (!item || !["hosted", "local"].includes(mode))
     throw new Error("No visualizer available.");
   let url = mode === "local" ? urls()[id] : item.url;
-  if (id === "studio") {
+  if (id === "studio" || id === "assembly") {
     await phone.start();
     const info = await phone.info();
-    url = info.localUrl + "#pair=" + info.key + "&studio=1";
+    url = info.localUrl + "#pair=" + info.key + (id === "assembly" ? "&cad=1" : "&studio=1");
   }
   if (!url) throw new Error("This tool has no local server configured.");
   if (mode === "local" && !(await workspace.probe(url, 45000)))
@@ -203,7 +203,7 @@ app.whenReady().then(async () => {
     buildRecipe: (workspaceRoot, id, action, localUrls, options) =>
       id.startsWith("plugin-")
         ? plugins.recipe(id, action, options)
-        : recipe(workspaceRoot, id, action, localUrls),
+        : recipe(workspaceRoot, id, action, localUrls, options),
   });
   connections = new Connections(environment());
   phone = new PhoneAccess({
@@ -289,6 +289,7 @@ app.whenReady().then(async () => {
     ),
   }));
   handle("studio", () => showView("studio", "hosted"));
+  handle("assembly", () => showView("assembly", "hosted"));
   handle("plugins-catalog", () =>
     require("../integrations/catalog.cjs").catalog.map(
       ({ key, name, description, resources }) => ({
@@ -502,6 +503,9 @@ app.whenReady().then(async () => {
     await runtime.close();
     await connections.close();
     await phone.server.workbench.lock;
+    await phone.server.cad.lock;
+    await phone.server.cad.fusionLock;
+    phone.server.cad.reviews.clear();
     await plugins.lock;
     root = selected;
     runtime.root = root;

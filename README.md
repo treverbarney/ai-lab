@@ -42,6 +42,17 @@ plus device pairing, and revokes its sessions when stopped. It does not expose
 a public server. See [the phone guide](docs/phone.md). Terminal users can instead
 run `npm run phone:private` from the repo (or `npm run phone` for a localhost preview).
 
+## CAD & assembly (0.7)
+
+Open **CAD & assembly** in the desktop sidebar or phone studio. Adjust a hinged
+enclosure, choose M3/M4 mounting hardware, save revisions, and explicitly install
+the CAD engine when ready. **Build & check** produces exact STEP/STL geometry,
+a parts list and interference/clearance reports. Select, hide/isolate, explode,
+and open the lid in the 3D preview. **Live Fusion** exposes the existing MCP
+bridge through guided parameter review, body inspection and clearance controls.
+The native Fusion application/add-in is still required for Fusion calls.
+See [the CAD guide](docs/cad-assembly.md) and [validation](docs/cad-validation.md).
+
 ## Integration studio (0.6)
 
 Open **Plugins → Add & review adapter** to enable an integration, then **Open

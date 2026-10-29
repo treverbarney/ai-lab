@@ -39,6 +39,7 @@ packager({
   asar: true,
   prune: true,
   ignore: [
+    /^\/cad\/__pycache__(?:\/|$)/,
     /^\/integrations\/upstream(?:\/|$)/,
     /^\/studio\/.*-source\.js$/,
     /^\/neural\/(?!README\.md$)/,

@@ -1033,3 +1033,12 @@ async function openStudio() {
   $("#view-toolbar").hidden = false;
   document.body.classList.add("workspace-open");
 }
+$('#open-assembly').addEventListener('click', action(async () => {
+  requireDesktop();
+  await window.lab.openAssembly();
+  activeTool = null;
+  $('#view-title').textContent = 'Dino CAD & Assembly';
+  $('#view-mode').textContent = 'Local design · exact geometry · paired phone controls';
+  $('#view-toolbar').hidden = false;
+  document.body.classList.add('workspace-open');
+}));

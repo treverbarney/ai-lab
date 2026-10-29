@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>Dino · CAD & Assembly</title>
+  <link rel="stylesheet" href="assembly.css"><script type="module" src="assembly.js"></script>
+</head>
+<body>
+  <header class="app-header"><a class="brand" href="index.html"><span class="brand-mark">D</span>DINO <span>LAB</span></a><span class="crumb">/ CAD & ASSEMBLY</span><a class="back" href="/phone/">All workspaces ↗</a></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">DESIGN / ASSEMBLE / CHECK</p><h1>Make the parts fit.</h1><p>A parametric enclosure, one connected assembly, and checks you can inspect.</p></div><span class="local"><i></i> LOCAL COMPUTE</span></div>
+    <div id="status" role="status">Connecting to your Dino host…</div>
+    <nav class="tabs" aria-label="CAD workspace"><button id="design-tab" aria-selected="true">Design & assembly</button><button id="fusion-tab" aria-selected="false">Live Fusion</button><a href="index.html">Integration studio ↗</a></nav>
+    <div id="design-pane">
+      <div class="design-toolbar"><div><span class="eyebrow">HINGED ENCLOSURE</span><h2 id="design-title">Your first assembly</h2></div><div class="actions"><button id="save">Save revision</button><button id="install">Install CAD engine</button><button id="build" class="primary">Build & check</button><button id="stop" hidden>Stop job</button></div></div>
+      <div class="workspace">
+        <aside class="panel parameters"><h3>Design parameters <span>mm</span></h3><label>Design name<input id="name" maxlength="80" value="Hinged enclosure"></label><div id="fields"></div><label>Mounting hardware<select id="fastener"><option>M3</option><option>M4</option></select></label><p class="hint">Four screws and nuts, matching clearance holes, and a Ø3 hinge pin. Hardware is simplified.</p><button id="reset" class="text">Reset dimensions</button></aside>
+        <section class="viewport-panel"><div class="viewport-meta"><span id="preview-label">DRAFT PREVIEW</span><span id="selection">All components</span></div><div id="viewport" aria-label="Interactive assembly preview"></div><div class="view-controls"><label>Lid angle <output id="angle-label">0°</output><input id="angle" type="range" min="0" max="110" value="0"></label><label>Explode <input id="explode" type="range" min="0" max="30" value="0"></label><button id="fit">Fit view</button></div><p id="preview-note" class="hint">Draft preview omits cuts. Build once for exact geometry, holes, and fit checks.</p></section>
+        <aside class="panel component-panel"><h3>Assembly <span id="part-count"></span></h3><p class="hint">Select a part to highlight it. Toggle visibility or isolate a component.</p><div id="components"></div><div class="actions"><button id="isolate">Isolate selected</button><button id="show-all">Show all</button></div><h3>Connections</h3><div id="joints"></div></aside>
+      </div>
+      <section class="intent panel"><div><h3>Change the design in words</h3><p class="hint">Bounded commands, with a review before saving. No model or API needed.</p></div><form id="intent-form"><label class="sr-only" for="intent">Dimension request</label><input id="intent" placeholder="width to 120 mm and height to 40 mm" maxlength="500"><button>Review changes →</button></form></section>
+      <div class="results-grid"><section class="panel"><h3>Fit & geometry <span id="check-badge">NOT BUILT</span></h3><div id="checks"><p>Build this revision to run exact solid interference checks, three hinge poses, and a STEP round-trip test.</p></div><details><summary>Job log</summary><pre id="log">No job yet.</pre></details></section><section class="panel"><h3>Parts list <span id="bom-count"></span></h3><div class="table-scroll"><table><thead><tr><th>Part</th><th>Qty</th><th>Material</th></tr></thead><tbody id="bom"></tbody></table></div><div id="exports" class="actions"></div><p class="hint">Editable source retains parameters and joints. STEP preserves geometry and component labels, not native feature history.</p></section></div>
+      <section class="panel history"><h3>Saved revisions</h3><label class="hint">Reopen editable source <input id="source-import" type="file" accept=".json,application/json"></label><div id="revisions"><p>No saved revisions yet.</p></div></section>
+      <p class="footnote">Example design only: choose actual materials and tolerances for your process. Hinge pin retention is not modeled. Motion checks sample 0°, 55°, and 110°; they do not establish continuous clearance.</p>
+    </div>
+    <section id="fusion-pane" hidden>
+      <div class="design-toolbar"><div><span class="eyebrow">YOUR NATIVE DESIGN</span><h2>Fusion, connected.</h2></div><div class="actions"><button id="fusion-connect" class="primary">Connect Fusion</button><button id="fusion-refresh">Refresh design</button></div></div>
+      <p>Keep Fusion open with the Fusion360MCP add-in running. This panel reads native parameters and root-component bodies. The Dino enclosure remains its own editable design.</p>
+      <details class="panel"><summary>First-time connection setup</summary><p>In Dino desktop → Engineering → Dino Fusion, install the wrapper. Register the upstream <code>engineering/fusion360-mcp/Fusion360MCP</code> folder through Fusion’s Scripts and Add-Ins dialog, then Run the add-in. The default bridge port is 9876. Return here and connect.</p><p>To bring a Dino assembly into Fusion, download its STEP file and open/import it in Fusion. Keep the source JSON to regenerate dimensions and joints in Dino; STEP import does not recreate native parametric features or mechanical joints.</p></details>
+      <div id="fusion-document" class="panel"><p>Connect to inspect the open design.</p></div>
+      <div class="results-grid"><section class="panel"><h3>Native parameters</h3><form id="fusion-parameter-form"><label>Parameter<select id="fusion-parameter"></select></label><label>New expression<input id="fusion-expression" placeholder="120 mm" maxlength="200"></label><button>Review parameter change</button></form><div id="fusion-parameters"></div></section><section class="panel"><h3>Inspect & measure</h3><label>First body<select id="body-a"></select></label><label>Second body<select id="body-b"></select></label><div class="actions"><button id="body-info">Inspect first body</button><button id="measure">Measure clearance</button></div><pre id="fusion-result">Select bodies after connecting.</pre></section></div>
+      <p class="footnote">Fusion operations need the native app and its add-in on your computer. A review expires after two minutes and is checked again against the current design before applying. Avoid switching or editing documents during a call.</p>
+    </section>
+  </main>
+  <dialog id="review-dialog"><h2 id="review-title">Review changes</h2><div id="review-content"></div><div class="actions"><button id="cancel-review">Cancel</button><button id="approve-review" class="primary">Apply changes</button></div></dialog>
+</body></html>

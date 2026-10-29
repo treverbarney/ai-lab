@@ -8,6 +8,7 @@ const { Workbench } = require("../orchestrator/workbench.cjs");
 const { Notices } = require("../orchestrator/notices.cjs");
 const { Views } = require("../integrations/views.cjs");
 const { Flows } = require("../integrations/flows.cjs");
+const { Cad } = require('../cad/service.cjs');
 const { pluginAction } = require("../plugins/service.cjs");
 const packageInfo = require("../package.json");
 const tools = [...neural, ...engineering];
@@ -57,6 +58,7 @@ class PhoneServer {
     });
     this.views = new Views(this);
     this.flows = new Flows(this);
+    this.cad = new Cad(this);
     this.workbench = new Workbench(getRoot, runtime);
     this.notices = new Notices(getRoot);
     this.server = null;
@@ -262,6 +264,11 @@ class PhoneServer {
         req.method === "GET"
       )
         return json(res, 200, []);
+      if (url.pathname === '/api/cad') {
+        return json(res, 200, req.method === 'GET' ? await this.cad.state() : await this.cad.execute(await body(req)));
+      }
+      if (url.pathname === '/api/cad/fusion' && req.method === 'POST')
+        return json(res, 200, await this.cad.fusion(await body(req)));
       if (url.pathname === "/api/plugin-settings") {
         if (req.method === "GET")
           return json(
@@ -489,6 +496,9 @@ class PhoneServer {
       "flows.html",
       "flow.js",
       "flow.css",
+      "assembly.html",
+      "assembly.js",
+      "assembly.css",
     ])
       shared.set("/studio/" + f, path.join(__dirname, "..", "studio", f));
     if (/^\/studio\/vendor\/[a-zA-Z0-9_.-]+$/.test(url.pathname))
@@ -540,6 +550,9 @@ class PhoneServer {
     res.end(await fs.readFile(file));
   }
   async close() {
+    await this.cad.lock;
+    await this.cad.fusionLock;
+    this.cad.reviews.clear();
     await this.flows.close();
     this.views.close();
     clearTimeout(this.streamTimer);

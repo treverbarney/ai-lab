@@ -95,6 +95,7 @@
     },
   ];
   const docs = [
+    { id: "assembly", name: "CAD & assembly", path: "docs/cad-assembly.md" },
     { id: "integrations", name: "Integration studio", path: "docs/integrations.md" },
     { id: "validation", name: "Integration validation", path: "docs/integration-validation.md" },
     { id: "plugins", name: "Plugin developer guide", path: "docs/plugins.md" },

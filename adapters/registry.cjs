@@ -163,7 +163,8 @@ function baseRecipe(root, id, action, urls = {}) {
   }
   throw new Error("Unknown Dino action.");
 }
-function recipe(root, id, action, urls = {}) {
+function recipe(root, id, action, urls = {}, options = {}) {
+  if (id === 'cad-assembly') return require('../cad/recipe.cjs').recipe(root, action, options);
   const steps = baseRecipe(root, id, action, urls);
   const item = tools.find((x) => x.id === id);
   if (action === "install" && item.path)

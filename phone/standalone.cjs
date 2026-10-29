@@ -22,7 +22,7 @@ const runtime = new Runtime({
   buildRecipe: (workspaceRoot, id, action, localUrls, options) =>
     id.startsWith("plugin-")
       ? plugins.recipe(id, action, options)
-      : recipe(workspaceRoot, id, action, localUrls),
+      : recipe(workspaceRoot, id, action, localUrls, options),
 });
 const connections = new Connections(environment());
 const phone = new PhoneAccess({

@@ -2,6 +2,7 @@ const esbuild = require("esbuild"),
   fs = require("node:fs/promises"),
   path = require("node:path");
 (async () => {
+  await esbuild.build({ entryPoints: ['studio/assembly-source.js'], bundle: true, format: 'esm', minify: true, outfile: 'studio/assembly.js' });
   await esbuild.build({
     entryPoints: ["studio/cad-source.js"],
     bundle: true,

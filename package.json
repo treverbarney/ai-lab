@@ -1,6 +1,6 @@
 {
   "name": "dino-lab",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "One local Dino workspace for neural exploration, training, CAD and simulation",
   "author": "Trever Barney",
@@ -22,7 +22,9 @@
     "prephone": "npm run build:viewer",
     "prephone:private": "npm run build:viewer",
     "plugins": "node plugins/cli.cjs",
-    "test:studio": "node test/studio.e2e.cjs"
+    "test:studio": "node test/studio.e2e.cjs",
+    "test:cad": "node test/cad.e2e.cjs",
+    "test:cad:geometry": "node test/cad-geometry.cjs"
   },
   "engines": {
     "node": ">=22.12"
