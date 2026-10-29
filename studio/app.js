@@ -12,6 +12,8 @@ async function api(route, method = "GET", data) {
     body: method === "POST" ? JSON.stringify(data) : undefined,
     cache: "no-store",
   });
+  if (!r.headers.get("content-type")?.includes("application/json"))
+    throw Error("Host unavailable. Open Dino Lab on your computer and reconnect.");
   const v = await r.json();
   if (!r.ok) throw Error(v.error || "Host unavailable.");
   return v;

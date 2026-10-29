@@ -1,8 +1,8 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font: 14px/1.6 system-ui;
-  background: #171817;
-  color: #f0eee5;
+  background: #f5f5f9;
+  color: #252334;
 }
 * {
   box-sizing: border-box;
@@ -16,7 +16,7 @@ header {
   flex-wrap: wrap;
   gap: 20px;
   padding: 18px 24px;
-  border-bottom: 1px solid #373a32;
+  border-bottom: 1px solid #e3e3ed;
 }
 header strong {
   flex: 1;
@@ -24,7 +24,7 @@ header strong {
   letter-spacing: 1.4px;
 }
 a {
-  color: #f47b43;
+  color: #7554cf;
 }
 main {
   max-width: 1220px;
@@ -44,10 +44,10 @@ h2 {
 .eyebrow {
   font-size: 11px;
   letter-spacing: 2px;
-  color: #b4c298;
+  color: #7554cf;
 }
 p {
-  color: #aaa99b;
+  color: #737184;
 }
 button,
 input,
@@ -57,19 +57,19 @@ textarea {
 }
 button {
   padding: 11px 15px;
-  border: 1px solid #454b3d;
-  background: #252822;
-  color: #f0eee5;
+  border: 1px solid #d9d6e5;
+  background: #f0eff6;
+  color: #252334;
   border-radius: 6px;
   cursor: pointer;
 }
 button:hover {
-  border-color: #f47b43;
+  border-color: #7554cf;
 }
 button.primary {
-  background: #f47b43;
-  color: #171817;
-  border-color: #f47b43;
+  background: #7554cf;
+  color: #f5f5f9;
+  border-color: #7554cf;
 }
 button:disabled {
   opacity: 0.45;
@@ -80,9 +80,9 @@ select,
 textarea {
   display: block;
   padding: 10px;
-  background: #111310;
-  color: #f0eee5;
-  border: 1px solid #454b3d;
+  background: #f7f6fa;
+  color: #252334;
+  border: 1px solid #d9d6e5;
   border-radius: 5px;
   width: 100%;
   max-width: 600px;
@@ -90,7 +90,7 @@ textarea {
 label {
   display: block;
   margin: 12px 0;
-  color: #c6c9bb;
+  color: #5a566e;
 }
 input[type="file"] {
   max-width: 320px;
@@ -116,7 +116,7 @@ aside button {
   margin: 8px 0;
 }
 section {
-  border-top: 1px solid #373a32;
+  border-top: 1px solid #e3e3ed;
   margin-top: 24px;
   padding-top: 14px;
 }
@@ -128,12 +128,12 @@ section {
 }
 .tag {
   font-size: 11px;
-  color: #b4c298;
+  color: #7554cf;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 pre {
-  background: #10120f;
+  background: #f7f6fa;
   padding: 16px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -150,14 +150,14 @@ details {
   align-items: center;
   flex-wrap: wrap;
   padding: 12px 0;
-  border-bottom: 1px solid #373a32;
+  border-bottom: 1px solid #e3e3ed;
 }
 .artifact strong {
   flex: 1;
   overflow-wrap: anywhere;
 }
 #status {
-  color: #b4c298;
+  color: #7554cf;
   min-height: 24px;
 }
 dialog {
@@ -165,9 +165,9 @@ dialog {
   width: 94vw;
   max-width: none;
   height: 90vh;
-  background: #171817;
-  color: #f0eee5;
-  border: 1px solid #454b3d;
+  background: #f5f5f9;
+  color: #252334;
+  border: 1px solid #d9d6e5;
   border-radius: 8px;
 }
 dialog::backdrop {
@@ -181,7 +181,7 @@ iframe {
   width: 100%;
   height: calc(100% - 70px);
   border: 0;
-  background: #171817;
+  background: #f5f5f9;
 }
 .viewer-page #cad {
   height: calc(100vh - 60px);
@@ -194,18 +194,18 @@ iframe {
 }
 .flow-canvas {
   height: 460px;
-  border: 1px solid #454b3d;
+  border: 1px solid #d9d6e5;
   border-radius: 8px;
-  background: #20231e;
+  background: #eeedf5;
 }
 .react-flow__node {
-  color: #171817;
+  color: #f5f5f9;
 }
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid #f47b43;
+  outline: 2px solid #7554cf;
   outline-offset: 3px;
 }
 [hidden] {
@@ -249,3 +249,29 @@ select:focus-visible {
     font-size: 9px;
   }
 }
+
+/* Dino product workspace. */
+body { -webkit-font-smoothing: antialiased; }
+header { background: white; min-height: 70px; }
+header a { font-size: 12px; text-decoration: none; }
+main { max-width: 1320px; padding-top: 30px; }
+h1 { font-size: clamp(28px, 4vw, 36px); font-weight: 650; letter-spacing: -1px; margin: 8px 0; }
+h2 { font-size: 18px; font-weight: 600; }
+.eyebrow { font-size: 9px; letter-spacing: 1.4px; font-weight: 600; }
+p { font-size: 13px; }
+button { min-height: 40px; border-radius: 8px; background: white; font-size: 12px; }
+button.primary { color: white; }
+input, select, textarea { border-radius: 8px; background: #faf9fc; }
+.layout { grid-template-columns: 240px minmax(0, 1fr); gap: 20px; align-items: start; }
+.layout aside { background: #eeebf5; border: 1px solid #e2ddec; border-radius: 12px; padding: 14px; }
+.layout aside h2 { padding: 0 6px; font-size: 13px; margin-top: 5px; }
+aside button { padding: 12px; border-color: #e2ddec; }
+section { background: white; border: 1px solid #e3e3ed; border-radius: 12px; padding: 20px; }
+#tool { background: white; padding: 22px; border: 1px solid #e3e3ed; min-height: 220px; border-radius: 12px; }
+section h2:first-child { margin-top: 0; }
+.tag { font-size: 10px; }
+pre { background: #f7f6fa; border: 1px solid #e8e3f1; }
+#status { font-size: 12px; }
+.artifact { font-size: 12px; }
+dialog { background: white; border-radius: 12px; }
+@media (max-width: 700px) { .layout { grid-template-columns: 1fr; } .layout aside { padding: 8px; } section, #tool { padding: 16px; } input, select, textarea { font-size: 16px; } header { gap: 10px; } }

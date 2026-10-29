@@ -2,6 +2,7 @@
 const $ = (selector) => document.querySelector(selector);
 const catalog = window.labCatalog;
 let pluginList = [];
+let toolTrack = "all";
 const goStudio = new URLSearchParams(location.hash.slice(1)).has("studio");
 const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
   "workbench",
@@ -104,7 +105,12 @@ function showConnection() {
 function renderTools() {
   const list = $("#tool-list");
   list.replaceChildren(
-    ...tools.map((tool, index) => {
+    ...tools.filter((tool) => {
+      const query = $("#phone-search").value.trim().toLowerCase();
+      const inTrack = toolTrack === "all" || catalog[toolTrack].some((item) => item.id === tool.id);
+      return inTrack && `${names[tool.id]} ${tool.name} ${tool.description}`.toLowerCase().includes(query);
+    }).map((tool) => {
+      const index = tools.indexOf(tool);
       const row = document.createElement("button");
       row.className = "tool-row";
       row.dataset.tool = tool.id;
@@ -115,7 +121,14 @@ function renderTools() {
       return row;
     }),
   );
+  $("#empty-search").hidden = list.children.length !== 0;
 }
+$("#phone-search").addEventListener("input", renderTools);
+document.querySelectorAll("[data-track]").forEach((el) => el.addEventListener("click", () => {
+  toolTrack = el.dataset.track;
+  document.querySelectorAll("[data-track]").forEach((button) => button.setAttribute("aria-pressed", String(button === el)));
+  renderTools();
+}));
 function update() {
   showConnection();
   $("#running-count").textContent = connected
@@ -506,7 +519,11 @@ function tab(id) {
   document
     .querySelectorAll("[data-tab]")
     .forEach((button) =>
-      button.classList.toggle("active", button.dataset.tab === id),
+      {
+        button.classList.toggle("active", button.dataset.tab === id);
+        if (button.dataset.tab === id) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      },
     );
   window.scrollTo({ top: 0 });
   if (id === "jobs") renderJobs();
@@ -610,7 +627,7 @@ window.addEventListener("offline", () => {
   projects.href = "/workbench/index.html";
   projects.className = "button primary";
   projects.textContent = "Projects, 3D review & agent →";
-  $("#studio").append(projects);
+  // Projects and workflows are available in the shortcut bar.
   const notify = button(
     "Enable completion notifications",
     "button secondary",
@@ -647,7 +664,7 @@ window.addEventListener("offline", () => {
   studioLink.href = "/studio/index.html";
   studioLink.className = "button secondary";
   studioLink.textContent = "Integration studio ↗";
-  $("#studio").append(studioLink);
+  // Keep a single workflow entry in the shortcut bar.
   $("#studio").append(button("Plugins →", "button secondary", openPlugins));
   renderTools();
   showConnection();
