@@ -16,6 +16,8 @@ class Runtime extends EventEmitter {
     Object.assign(this, { root, urls, spawnProcess, buildRecipe, env });
     this.jobs = new Map();
     this.starting = new Set();
+    this.pendingStarts = new Map();
+    this.cancelStarting = new Set();
     this.queue = [];
     this.heavy = null;
     this.closing = false;
@@ -34,7 +36,9 @@ class Runtime extends EventEmitter {
     this.emit("change");
   }
   async start(id, action) {
-    const heavy = ["install", "sample", "train"].includes(action);
+    const heavy = ["install", "sample", "train", "run", "check"].includes(
+      action,
+    );
     if (
       this.queue.some((j) => j.id === id) ||
       this.starting.has(id) ||
@@ -43,7 +47,7 @@ class Runtime extends EventEmitter {
       throw new Error("This tool already has an active job. Stop it first.");
     if (!heavy) return this.startNow(id, action);
     if (!this.root) throw new Error("Connect a repository first.");
-    this.buildRecipe(this.root, id, action, this.urls());
+    if (this.closing) throw Error("Host is stopping.");
     if (!this.heavy) {
       this.heavy = id;
       try {
@@ -117,10 +121,16 @@ class Runtime extends EventEmitter {
         "The shared engineering runtime is busy. Finish or stop its current job first.",
       );
     this.starting.add(id);
+    let finishStarting;
+    this.pendingStarts.set(
+      id,
+      new Promise((resolve) => (finishStarting = resolve)),
+    );
     try {
-      const steps = this.buildRecipe(this.root, id, action, this.urls());
+      const steps = await this.buildRecipe(this.root, id, action, this.urls());
       if (steps[0]) await fs.access(steps[0].cwd);
-      if (this.closing) throw Error("Host is stopping.");
+      if (this.closing || this.cancelStarting.has(id))
+        throw Error("Job cancelled before start.");
       const job = {
         id,
         action,
@@ -138,6 +148,9 @@ class Runtime extends EventEmitter {
       return { id, state: job.state };
     } finally {
       this.starting.delete(id);
+      this.cancelStarting.delete(id);
+      this.pendingStarts.delete(id);
+      finishStarting();
     }
   }
   async run(job, steps) {
@@ -145,6 +158,7 @@ class Runtime extends EventEmitter {
       for (const step of steps) {
         if (job.stopping) break;
         await fs.access(step.cwd);
+        if (job.stopping) break;
         this.log(job, `$ ${step.command} ${step.args.join(" ")}\n`);
         const code = await new Promise((resolve, reject) => {
           const resolved = resolveCommand(step.command, step.args, this.env);
@@ -207,6 +221,10 @@ class Runtime extends EventEmitter {
     }
   }
   async stop(id) {
+    if (this.pendingStarts.has(id)) {
+      this.cancelStarting.add(id);
+      await this.pendingStarts.get(id);
+    }
     const job = this.jobs.get(id);
     if (!job) return;
     if (job.state === "queued") {
@@ -247,7 +265,11 @@ class Runtime extends EventEmitter {
   async close() {
     this.closing = true;
     try {
-      await Promise.all([...this.jobs.keys()].map((id) => this.stop(id)));
+      await Promise.all(
+        [...new Set([...this.jobs.keys(), ...this.starting])].map((id) =>
+          this.stop(id),
+        ),
+      );
       await this.draining;
     } finally {
       this.closing = false;

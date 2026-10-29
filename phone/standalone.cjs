@@ -1,6 +1,8 @@
 const path = require("node:path");
 const { Runtime } = require("../orchestrator/runtime.cjs");
 const { Connections } = require("../orchestrator/mcp.cjs");
+const { Plugins } = require("../plugins/manager.cjs");
+const { recipe } = require("../adapters/registry.cjs");
 const { defaultConnection } = require("../adapters/registry.cjs");
 const { neural } = require("../dashboard/catalog.js");
 const { environment } = require("../desktop/environment.cjs");
@@ -12,9 +14,19 @@ const urls = () =>
       .filter((x) => x.port)
       .map((x) => [x.id, `http://127.0.0.1:${x.port}/`]),
   );
-const runtime = new Runtime({ root, urls, env: environment() });
+const plugins = new Plugins(() => root);
+const runtime = new Runtime({
+  root,
+  urls,
+  env: environment(),
+  buildRecipe: (workspaceRoot, id, action, localUrls) =>
+    id.startsWith("plugin-")
+      ? plugins.recipe(id, action)
+      : recipe(workspaceRoot, id, action, localUrls),
+});
 const connections = new Connections(environment());
 const phone = new PhoneAccess({
+  plugins,
   getRoot: () => root,
   runtime,
   connections,

@@ -6,6 +6,7 @@ const { neural, engineering, docs } = require("../dashboard/catalog.js");
 const workspace = require("../desktop/workspace.cjs");
 const { Workbench } = require("../orchestrator/workbench.cjs");
 const { Notices } = require("../orchestrator/notices.cjs");
+const { pluginAction } = require("../plugins/service.cjs");
 const packageInfo = require("../package.json");
 const tools = [...neural, ...engineering];
 const json = (res, status, value) => {
@@ -34,6 +35,7 @@ async function body(req) {
 class PhoneServer {
   constructor({
     getRoot,
+    plugins,
     runtime,
     connections,
     urls,
@@ -43,6 +45,7 @@ class PhoneServer {
   }) {
     Object.assign(this, {
       getRoot,
+      plugins,
       runtime,
       connections,
       urls,
@@ -239,6 +242,17 @@ class PhoneServer {
         );
         return json(res, 200, { paired: false });
       }
+      if (url.pathname === "/api/plugins" && req.method === "GET")
+        return json(res, 200, (await this.plugins?.list()) || []);
+      if (url.pathname === "/api/plugin-action" && req.method === "POST") {
+        const value = await pluginAction(
+          this.plugins,
+          this.runtime,
+          this.connections,
+          await body(req),
+        );
+        return json(res, 200, value || { accepted: true });
+      }
       if (url.pathname === "/api/workbench" && req.method === "GET")
         return json(res, 200, await this.workbench.execute("state"));
       if (url.pathname === "/api/workbench" && req.method === "POST") {
@@ -363,6 +377,7 @@ class PhoneServer {
       }
       if (req.method === "POST" && url.pathname === "/api/tool") {
         const { id, name, args } = await body(req);
+        if (id.startsWith("plugin-")) await this.plugins?.approved(id);
         return json(res, 200, await this.connections.call(id, name, args));
       }
       return json(res, 404, { error: "Endpoint unavailable." });

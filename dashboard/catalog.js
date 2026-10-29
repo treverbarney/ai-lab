@@ -95,6 +95,7 @@
     },
   ];
   const docs = [
+    { id: "plugins", name: "Plugin developer guide", path: "docs/plugins.md" },
     { id: "phone", name: "Phone access guide", path: "docs/phone.md" },
     { id: "desktop", name: "Dino Lab guide", path: "docs/desktop.md" },
     { id: "setup", name: "Engineering setup", path: "setup/install-notes.md" },

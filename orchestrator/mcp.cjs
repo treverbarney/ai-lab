@@ -31,6 +31,7 @@ class Connections {
         cwd,
         env: {
           ...this.env,
+          ELECTRON_RUN_AS_NODE: "1",
           CADGEN_TELEMETRY: "0",
           CADGEN_UPDATE_CHECK: "0",
           PYTHONUNBUFFERED: "1",

@@ -2,6 +2,14 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
   "lab",
   Object.freeze({
+    plugins: () => ipcRenderer.invoke("lab:plugins-list"),
+    importPlugin: (example = false) =>
+      ipcRenderer.invoke("lab:plugins-import", example),
+    enablePlugin: (id, digest) =>
+      ipcRenderer.invoke("lab:plugins-enable", id, digest),
+    disablePlugin: (id, remove = false) =>
+      ipcRenderer.invoke("lab:plugins-disable", id, remove),
+    pluginAction: (input) => ipcRenderer.invoke("lab:plugins-action", input),
     workbench: (op, input) => ipcRenderer.invoke("lab:workbench", op, input),
     openWorkbench: () => ipcRenderer.invoke("lab:workbench-open"),
     phoneInfo: () => ipcRenderer.invoke("lab:phone-info"),

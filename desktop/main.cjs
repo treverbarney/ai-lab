@@ -13,12 +13,15 @@ const { pathToFileURL } = require("node:url");
 const { spawn } = require("node:child_process");
 const { Runtime } = require("../orchestrator/runtime.cjs");
 const { Connections } = require("../orchestrator/mcp.cjs");
+const { Plugins } = require("../plugins/manager.cjs");
+const { pluginAction } = require("../plugins/service.cjs");
+const { recipe } = require("../adapters/registry.cjs");
 const { defaultConnection } = require("../adapters/registry.cjs");
 const { prepareTraining } = require("../orchestrator/training.cjs");
 const { environment } = require("./environment.cjs");
 const { Bootstrap } = require("./bootstrap.cjs");
 const { PhoneAccess } = require("../phone/access.cjs");
-let runtime, connections, bootstrap, phone;
+let runtime, connections, bootstrap, phone, plugins;
 app.setName("Dino Lab");
 const catalog = require("../dashboard/catalog.js");
 const workspace = require("./workspace.cjs");
@@ -186,9 +189,19 @@ app.whenReady().then(async () => {
         win.webContents.send("lab:bootstrap-log", text);
     },
   });
-  runtime = new Runtime({ root, urls, env: environment() });
+  plugins = new Plugins(() => root);
+  runtime = new Runtime({
+    root,
+    urls,
+    env: environment(),
+    buildRecipe: (workspaceRoot, id, action, localUrls) =>
+      id.startsWith("plugin-")
+        ? plugins.recipe(id, action)
+        : recipe(workspaceRoot, id, action, localUrls),
+  });
   connections = new Connections(environment());
   phone = new PhoneAccess({
+    plugins,
     getRoot: () => root,
     runtime,
     connections,
@@ -269,6 +282,37 @@ app.whenReady().then(async () => {
         ]),
     ),
   }));
+  handle("plugins-list", () => plugins.list(true));
+  handle("plugins-import", async (example = false) => {
+    let directory;
+    if (example === true)
+      directory = path.join(
+        __dirname,
+        "..",
+        "plugins",
+        "examples",
+        "artifact-report",
+      );
+    else {
+      const result = await dialog.showOpenDialog(win, {
+        title: "Import a Dino plugin folder containing dino-plugin.json",
+        properties: ["openDirectory"],
+      });
+      if (result.canceled) return null;
+      directory = result.filePaths[0];
+    }
+    return plugins.import(directory);
+  });
+  handle("plugins-enable", (id, digest) => plugins.enable(id, digest));
+  handle("plugins-disable", async (id, remove = false) => {
+    await plugins.disable(id);
+    await runtime.stop(id);
+    await connections.disconnect(id);
+    if (remove === true) await plugins.remove(id);
+  });
+  handle("plugins-action", (input) =>
+    pluginAction(plugins, runtime, connections, input),
+  );
   handle("workbench", (op, input) => phone.server.workbench.execute(op, input));
   handle("workbench-open", async () => {
     await phone.start();
@@ -368,9 +412,10 @@ app.whenReady().then(async () => {
   });
   handle("connection-disconnect", (id) => connections.disconnect(id));
   handle("connection-state", () => connections.snapshot());
-  handle("connection-call", (id, name, args) =>
-    connections.call(id, name, args),
-  );
+  handle("connection-call", async (id, name, args) => {
+    if (id.startsWith("plugin-")) await plugins.approved(id);
+    return connections.call(id, name, args);
+  });
   handle("workspace", async () => {
     const result = await dialog.showOpenDialog(win, {
       title: "Connect your Dino Lab repository",
@@ -385,6 +430,7 @@ app.whenReady().then(async () => {
     await runtime.close();
     await connections.close();
     await phone.server.workbench.lock;
+    await plugins.lock;
     root = selected;
     runtime.root = root;
     runtime.jobs.clear();

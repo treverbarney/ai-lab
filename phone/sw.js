@@ -1,4 +1,4 @@
-const CACHE = "dino-phone-v2";
+const CACHE = "dino-phone-v3";
 const SHELL = [
   "./",
   "./app.js",

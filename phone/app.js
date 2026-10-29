@@ -1,6 +1,7 @@
 "use strict";
 const $ = (selector) => document.querySelector(selector);
 const catalog = window.labCatalog;
+let pluginList = [];
 const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
   "workbench",
 );
@@ -140,6 +141,7 @@ function update() {
 async function refresh() {
   try {
     state = await api("state");
+    pluginList = await api("plugins");
     paired = true;
     connected = true;
     update();
@@ -220,13 +222,19 @@ async function run(tool, jobAction) {
     pairForm();
     return;
   }
-  await api("action", "POST", { id: tool.id, action: jobAction });
+  await api(
+    tool.id.startsWith("plugin-") ? "plugin-action" : "action",
+    "POST",
+    { id: tool.id, action: jobAction },
+  );
   toast(
-    `${names[tool.id]}: ${jobAction === "launch" ? "launched on host" : jobAction + " requested"}.`,
+    `${names[tool.id] || tool.name || tool.id}: ${jobAction === "launch" ? "launched on host" : jobAction + " requested"}.`,
   );
   await refresh();
 }
 function openTool(tool) {
+  if (!tool) throw Error("Tool unavailable. Refresh your connection.");
+  if (tool.id.startsWith("plugin-")) return openPlugin(tool);
   const body = sheet(names[tool.id]);
   currentTool = tool.id;
   body.append(
@@ -436,18 +444,25 @@ function renderJobs() {
         .querySelector(".job-buttons")
         .append(
           button("Open output →", "text-button", () =>
-            openTool(tools.find((t) => t.id === job.id)),
-          ),
-        );
-      if (["running", "stopping"].includes(job.state))
-        card.querySelector(".job-buttons").append(
-          button("Stop job", "text-button", () =>
-            run(
-              tools.find((t) => t.id === job.id),
-              "stop",
+            openTool(
+              tools.find((t) => t.id === job.id) ||
+                pluginList.find((p) => p.id === job.id) || {
+                  id: job.id,
+                  name: job.id,
+                  actions: [],
+                  enabled: false,
+                },
             ),
           ),
         );
+      if (["running", "stopping"].includes(job.state))
+        card
+          .querySelector(".job-buttons")
+          .append(
+            button("Stop job", "text-button", () =>
+              run(tools.find((t) => t.id === job.id) || { id: job.id }, "stop"),
+            ),
+          );
       return card;
     }),
   );
@@ -629,6 +644,7 @@ window.addEventListener("offline", () => {
     },
   );
   $("#more").append(notify);
+  $("#studio").append(button("Plugins →", "button secondary", openPlugins));
   renderTools();
   showConnection();
   if ("serviceWorker" in navigator && window.isSecureContext)
@@ -646,3 +662,70 @@ window.addEventListener("offline", () => {
   } else await refresh();
   if (goWorkbench && connected) location.assign("/workbench/index.html");
 })().catch((error) => toast(error.message));
+
+async function openPlugins() {
+  if (!connected) return pairForm();
+  pluginList = await api("plugins");
+  const body = sheet("Your extended toolkit.", "DINO LAB / PLUGINS");
+  body.append(
+    paragraph(
+      "Import, review and enable plugins on the host. Enabled actions run on that computer through the shared job queue.",
+      "tool-note",
+    ),
+  );
+  if (!pluginList.length)
+    body.append(
+      paragraph(
+        "No plugins installed yet. Open Plugins in Dino Lab desktop to add one.",
+      ),
+    );
+  for (const p of pluginList) {
+    body.append(
+      button(
+        p.name + " · " + (p.enabled ? "Enabled" : "Disabled"),
+        "button secondary",
+        () => openPlugin(p),
+      ),
+    );
+  }
+}
+function openPlugin(plugin) {
+  const body = sheet(plugin.name, "DINO LAB / PLUGIN");
+  currentTool = plugin.id;
+  body.append(paragraph(plugin.description || plugin.error || "Host plugin"));
+  if (!plugin.enabled)
+    body.append(
+      paragraph(
+        "This plugin needs host review and enablement before it can run.",
+        "tool-note",
+      ),
+    );
+  else {
+    plugin.actions.forEach((a) =>
+      body.append(button(a.label, "button primary", () => run(plugin, a.id))),
+    );
+    if (plugin.mcp) {
+      const connection = state.connections.find((c) => c.id === plugin.id);
+      body.append(
+        button(
+          connection ? "Disconnect MCP server" : "Connect MCP server",
+          "button secondary",
+          async () => {
+            await run(plugin, connection ? "disconnect" : "connect");
+            openPlugin(plugin);
+          },
+        ),
+      );
+      if (connection) mcpPanel(body, plugin, connection.tools);
+    }
+  }
+  body.append(
+    button("Stop host job", "text-button", () => run(plugin, "stop")),
+  );
+  const log = document.createElement("pre");
+  log.id = "live-log";
+  log.className = "log";
+  log.textContent =
+    state.jobs.find((j) => j.id === plugin.id)?.log || "No process output yet.";
+  body.append(log, button("← All plugins", "text-button", openPlugins));
+}

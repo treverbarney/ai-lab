@@ -42,6 +42,15 @@ plus device pairing, and revokes its sessions when stopped. It does not expose
 a public server. See [the phone guide](docs/phone.md). Terminal users can instead
 run `npm run phone:private` from the repo (or `npm run phone` for a localhost preview).
 
+## Extend it with plugins
+
+Open **Plugins** to import a local adapter, review its commands, and enable it.
+Try **Add example plugin** for a dependency-free artifact inventory. Enabled
+plugins share the job queue, live logs and receipts, and can expose MCP tools on
+desktop and your paired phone. Nothing runs on import or startup. Changed package
+files need fresh approval. Plugins run with your account privileges; inspect them
+before trusting. See [the plugin guide](docs/plugins.md) for the manifest and CLI.
+
 ## Eight wrappers. One workbench.
 
 | Dino workspace | Engine | Controls |

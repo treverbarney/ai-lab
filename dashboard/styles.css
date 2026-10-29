@@ -1296,3 +1296,20 @@ dialog p {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+.plugin-nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 12px 16px;
+  text-align: left;
+  color: var(--muted);
+  border-radius: 6px;
+}
+.plugin-nav:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}

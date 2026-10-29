@@ -42,7 +42,8 @@ let data = window.labCatalog,
   activeTool,
   toastTimer;
 const all = () => [...data.neural, ...data.engineering];
-const name = (item) => brands[item.id][0];
+const name = (item) =>
+  item ? brands[item.id]?.[0] || item.name || item.id : "Plugin";
 function toast(message) {
   $("#toast").textContent = message;
   $("#toast").hidden = false;
@@ -276,7 +277,9 @@ function renderJobs() {
       const row = document.createElement("div");
       row.className = "job-row";
       const title = document.createElement("strong");
-      title.textContent = name(all().find((x) => x.id === job.id));
+      title.textContent = name(
+        all().find((x) => x.id === job.id) || { id: job.id },
+      );
       const jobAction = document.createElement("span");
       jobAction.textContent = job.action;
       const state = document.createElement("span");
@@ -287,7 +290,9 @@ function renderJobs() {
         jobAction,
         state,
         button("View log →", "text-button", () =>
-          toolPanel(all().find((x) => x.id === job.id)),
+          job.id.startsWith("plugin-")
+            ? pluginPanel(job.id)
+            : toolPanel(all().find((x) => x.id === job.id)),
         ),
       );
       return row;
@@ -836,3 +841,158 @@ $("#open-workbench").addEventListener(
     await window.lab.openWorkbench();
   }),
 );
+
+async function pluginsPanel() {
+  requireDesktop();
+  const body = modal("Build your own toolkit.", "DINO LAB / PLUGINS");
+  body.append(
+    paragraph(
+      "Small adapters. Your choice of engines. Import a local plugin, review its commands, then enable it for this workspace.",
+    ),
+  );
+  const controls = document.createElement("div");
+  controls.className = "panel-actions";
+  controls.append(
+    button("Import plugin folder", "button primary", async () => {
+      const id = await window.lab.importPlugin();
+      if (id) await pluginPanel(id);
+      else await pluginsPanel();
+    }),
+    button("Add example plugin", "button subtle", async () => {
+      const id = await window.lab.importPlugin(true);
+      await pluginPanel(id);
+    }),
+    button("Developer guide →", "text-button", () => readDoc("plugins")),
+  );
+  body.append(controls);
+  const list = await window.lab.plugins();
+  if (!list.length)
+    body.append(
+      paragraph(
+        "Your plugin shelf is empty. Try the dependency-free Artifact Report example to see how it works.",
+        "panel-note",
+      ),
+    );
+  for (const plugin of list) {
+    const card = section(
+      body,
+      plugin.name + " · " + (plugin.version || "Invalid"),
+    );
+    card.append(
+      paragraph(plugin.description || plugin.error),
+      paragraph(
+        plugin.error
+          ? "Unavailable: " + plugin.error
+          : plugin.enabled
+            ? "Enabled · available to your paired phone"
+            : plugin.changed
+              ? "Files changed · review required"
+              : "Disabled · nothing runs",
+        "panel-note",
+      ),
+      button("Open plugin →", "button subtle", () => pluginPanel(plugin.id)),
+    );
+  }
+}
+async function pluginPanel(id) {
+  const plugin = (await window.lab.plugins()).find((p) => p.id === id);
+  if (!plugin) throw Error("Plugin was removed. Refresh the plugin shelf.");
+  const body = modal(plugin.name, "DINO LAB / PLUGIN WORKSPACE");
+  activeTool = id;
+  body.append(
+    button("← All plugins", "text-button", pluginsPanel),
+    paragraph(plugin.description || plugin.error),
+  );
+  const controls = document.createElement("div");
+  controls.className = "panel-actions";
+  if (plugin.error) body.append(paragraph(plugin.error, "panel-note"));
+  else {
+    body.append(
+      paragraph(
+        `${plugin.version} · ${plugin.files} files · ${(plugin.bytes / 1024).toFixed(1)} KB · ${plugin.enabled ? "Enabled" : plugin.changed ? "Changed; needs review" : "Disabled"}`,
+        "panel-note",
+      ),
+    );
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "Review manifest and commands";
+    const pre = document.createElement("pre");
+    pre.className = "schema-output";
+    pre.textContent = JSON.stringify(plugin.manifest, null, 2);
+    details.append(summary, pre);
+    details.open = !plugin.enabled;
+    body.append(details);
+    if (!plugin.enabled) {
+      body.append(
+        paragraph(
+          "Trust only plugins you have inspected. Commands run with your user account and can read or change files and use the network. This is not a sandbox. Enabling approves this exact package; changed files require review again.",
+          "panel-note",
+        ),
+      );
+      controls.append(
+        button("Trust & enable plugin", "button primary", async () => {
+          await window.lab.enablePlugin(id, plugin.digest);
+          await pluginPanel(id);
+        }),
+      );
+    } else {
+      plugin.actions.forEach((a) =>
+        controls.append(
+          button(a.label, "button primary", async () => {
+            await window.lab.pluginAction({ id, action: a.id });
+            toast("Plugin action submitted. Follow its output below.");
+          }),
+        ),
+      );
+      controls.append(
+        button("Disable & stop", "button subtle", async () => {
+          await window.lab.disablePlugin(id);
+          await pluginPanel(id);
+        }),
+      );
+    }
+  }
+  controls.append(
+    button("Stop job", "text-button", () =>
+      window.lab.pluginAction({ id, action: "stop" }),
+    ),
+  );
+  if (!plugin.enabled)
+    controls.append(
+      button("Remove plugin", "text-button", async () => {
+        await window.lab.disablePlugin(id, true);
+        await pluginsPanel();
+      }),
+    );
+  body.append(controls);
+  const state = paragraph("", "panel-note");
+  state.id = "tool-job-state";
+  const log = document.createElement("pre");
+  log.id = "tool-log";
+  log.className = "log-output";
+  body.append(state, log);
+  jobs = await window.lab.jobs();
+  updateLog();
+  if (plugin.enabled && plugin.mcp) {
+    const area = section(body, "MCP tools");
+    area.append(
+      button("Connect declared server", "button subtle", async () => {
+        await window.lab.pluginAction({ id, action: "connect" });
+        await pluginPanel(id);
+      }),
+      button("Disconnect server", "text-button", async () => {
+        await window.lab.pluginAction({ id, action: "disconnect" });
+        await pluginPanel(id);
+      }),
+    );
+    const connection = (await window.lab.connectionState()).find(
+      (c) => c.id === id,
+    );
+    if (connection) {
+      const tools = document.createElement("div");
+      area.append(tools);
+      renderMcpTools(tools, { id }, connection.tools);
+    }
+  }
+}
+$("#open-plugins").addEventListener("click", action(pluginsPanel));

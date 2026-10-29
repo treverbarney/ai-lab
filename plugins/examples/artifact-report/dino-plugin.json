@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin-artifact-report",
+  "name": "Dino Artifact Report",
+  "version": "1.0.0",
+  "description": "A tiny, dependency-free example. Lists build artifact sizes and writes a JSON inventory for your projects.",
+  "actions": {
+    "check": {
+      "label": "Check artifact folder",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": ["${plugin}/report.cjs", "${artifacts}", "check"]
+        }
+      ]
+    },
+    "run": {
+      "label": "Create inventory report",
+      "steps": [
+        {
+          "command": "${node}",
+          "args": ["${plugin}/report.cjs", "${artifacts}", "run"]
+        }
+      ]
+    }
+  }
+}
