@@ -95,6 +95,8 @@
     },
   ];
   const docs = [
+    { id: "fusion-options", name: "Fusion requirements & next tools", path: "docs/fusion-integrations.md" },
+    { id: "workspace-design", name: "Workspace design update", path: "docs/workspace-redesign.md" },
     { id: "integrations", name: "Integration studio", path: "docs/integrations.md" },
     { id: "validation", name: "Integration validation", path: "docs/integration-validation.md" },
     { id: "plugins", name: "Plugin developer guide", path: "docs/plugins.md" },

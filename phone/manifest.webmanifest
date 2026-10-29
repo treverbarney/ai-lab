@@ -6,8 +6,8 @@
   "start_url": "/phone/",
   "scope": "/phone/",
   "display": "standalone",
-  "background_color": "#171817",
-  "theme_color": "#171817",
+  "background_color": "#f5f5f9",
+  "theme_color": "#f5f5f9",
   "icons": [
     { "src": "icons/dino-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icons/dino-512.png", "sizes": "512x512", "type": "image/png" }

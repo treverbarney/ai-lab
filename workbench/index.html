@@ -12,13 +12,13 @@
   </head>
   <body>
     <header>
-      <a href="/phone/">← Dino Lab</a><strong>PROJECT WORKBENCH</strong
+      <a href="/phone/">← Dino Lab</a><a href="/studio/index.html">Workflows</a><strong>PROJECT WORKBENCH</strong
       ><button id="refresh">Refresh</button>
     </header>
     <main>
-      <h1>One idea.<br /><em>Every step.</em></h1>
-      <p id="status">Connecting to your host…</p>
-      <section>
+      <div class="eyebrow">PROJECT WORKSPACE</div><h1>Projects & review</h1>
+      <p id="status" role="status">Connecting to your host…</p>
+      <section class="project-settings">
         <h2>Your projects</h2>
         <div class="row">
           <select id="project" aria-label="Project"></select
@@ -35,7 +35,7 @@
         ></textarea
         ><button id="save">Save notes</button>
       </section>
-      <section>
+      <section class="model-review">
         <h2>Models & review</h2>
         <div class="row">
           <select id="artifact" aria-label="Artifact"></select
@@ -60,7 +60,7 @@
         <p id="preview-status"></p>
         <div id="attached"></div>
       </section>
-      <section>
+      <section class="agent-requests">
         <h2>Agent requests</h2>
         <p>
           Describe a plate, physics test or prepared tiny training run. Dino
@@ -75,7 +75,7 @@
         ><button id="propose">Propose workflow</button>
         <div id="requests"></div>
       </section>
-      <section>
+      <section class="project-activity">
         <h2>Queue & completion inbox</h2>
         <p>
           One heavy job at a time. Local servers can remain running. Numeric

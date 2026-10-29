@@ -10,6 +10,14 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 const h = React.createElement;
+async function hostData(route, options) {
+  const response = await fetch(route, options);
+  if (!response.headers.get("content-type")?.includes("application/json"))
+    throw Error("Host unavailable. Open Dino Lab on your computer and reconnect.");
+  const data = await response.json();
+  if (!response.ok) throw Error(data.error || "Could not reach your workspace.");
+  return data;
+}
 function Editor() {
   const [nodes, setNodes] = useState([]),
     [edges, setEdges] = useState([]),
@@ -21,12 +29,12 @@ function Editor() {
     [plan, setPlan] = useState(null),
     [history, setHistory] = useState([]);
   React.useEffect(() => {
-    fetch("/api/plugins")
-      .then((r) => r.json())
-      .then((p) => setTools(p.filter((p) => p.enabled)));
-    fetch("/api/flows")
-      .then((r) => r.json())
-      .then(setHistory);
+    Promise.all([hostData("/api/plugins"), hostData("/api/flows")])
+      .then(([plugins, flows]) => {
+        setTools(plugins.filter((plugin) => plugin.enabled));
+        setHistory(flows);
+      })
+      .catch((error) => setMessage(error.message));
   }, []);
   function add() {
     const [id, action] = selected.split(":");
@@ -75,13 +83,11 @@ function Editor() {
   }
   async function run() {
     try {
-      const r = await fetch("/api/flows", {
+      const v = await hostData("/api/flows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Visual workflow", steps: plan }),
       });
-      const v = await r.json();
-      if (!r.ok) throw Error(v.error);
       setHistory([v, ...history]);
       setPlan(null);
       setMessage("Workflow submitted. Follow its jobs in the studio.");
