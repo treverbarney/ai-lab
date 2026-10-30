@@ -258,3 +258,33 @@ test("phone access preserves existing Tailscale services and removes only its ow
   );
   assert.ok(!commands.some((args) => args.includes("reset")));
 });
+
+
+test('unified workspace serves direct routes and only same-origin child views can embed', async t => {
+  const {base}=await fixture(t);
+  const shell=await fetch(base+'/phone/');
+  assert.match(await shell.text(), /workspace.js/);
+  assert.equal(shell.headers.get('x-frame-options'),'DENY');
+  for (const route of ['/phone/workspace.js','/phone/workspace.css','/phone/embedded.css']) assert.equal((await fetch(base+route)).status,200);
+  for (const route of ['/phone/control.html','/workbench/index.html','/studio/assembly.html']) {
+    const r=await fetch(base+route);
+    assert.equal(r.headers.get('x-frame-options'),'SAMEORIGIN');
+    assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'self'/);
+  }
+});
+test('training preparation requires pairing, preserves good data on errors, and refuses an active run', async t => {
+  const {post,cookie,root,runtime,calls}=await fixture(t);
+  const data={text:JSON.stringify({text:'Small training example.'})};
+  assert.equal((await post('/api/training-data',data)).status,401);
+  assert.equal((await post('/api/training-data',data,cookie,{Origin:'https://evil.test'})).status,403);
+  const ok=await post('/api/training-data',data,cookie);
+  assert.equal(ok.status,200);assert.equal((await ok.json()).records,1);
+  const filename=path.join(root,'.dino/training/input.jsonl');
+  const original=await fs.readFile(filename,'utf8');
+  for (const input of [{text:'invalid JSON'},{text:'{"other":1}'},{text:4},{text:'x'.repeat(1048577)}]) assert.equal((await post('/api/training-data',input,cookie)).status,400);
+  assert.equal(await fs.readFile(filename,'utf8'),original);
+  runtime.snapshot=()=>[{id:'minimind',state:'running'}];
+  assert.equal((await post('/api/training-data',data,cookie)).status,400);
+  assert.equal(await fs.readFile(filename,'utf8'),original);
+  assert.equal(calls.length,0,'Preparing a dataset must never launch training');
+});

@@ -79,16 +79,18 @@ function handle(channel, fn) {
     return fn(...args);
   });
 }
-async function showView(id, mode) {
+async function showView(id, mode, route = 'home') {
+  const workspaceRoutes = ['home','neural','attention','layers','cad','fusion','physics','freecad','training','projects','files','flows','extensions','activity','settings'];
+  if (!workspaceRoutes.includes(route)) throw Error('Unknown workspace.');
   let item = catalog.neural.find((x) => x.id === id && x.url);
-  if (id === "studio" || id === "assembly") item = { name: id === "assembly" ? "Dino CAD & Assembly" : "Dino Integration Studio", url: "local" };
+  if (id === "studio" || id === "assembly" || id === "workspace") item = { name: id === "assembly" ? "Dino CAD & Assembly" : "Dino Integration Studio", url: "local" };
   if (!item || !["hosted", "local"].includes(mode))
     throw new Error("No visualizer available.");
   let url = mode === "local" ? urls()[id] : item.url;
-  if (id === "studio" || id === "assembly") {
+  if (id === "studio" || id === "assembly" || id === "workspace") {
     await phone.start();
     const info = await phone.info();
-    url = info.localUrl + "#pair=" + info.key + (id === "assembly" ? "&cad=1" : "&studio=1");
+    url = info.localUrl + "#pair=" + info.key + (id === "workspace" ? "&workspace=" + route : id === "assembly" ? "&cad=1" : "&studio=1");
   }
   if (!url) throw new Error("This tool has no local server configured.");
   if (mode === "local" && !(await workspace.probe(url, 45000)))
@@ -288,6 +290,7 @@ app.whenReady().then(async () => {
         ]),
     ),
   }));
+  handle("workspace-view", route => showView("workspace", "hosted", route));
   handle("studio", () => showView("studio", "hosted"));
   handle("assembly", () => showView("assembly", "hosted"));
   handle("plugins-catalog", () =>

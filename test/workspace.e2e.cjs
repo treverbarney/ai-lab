@@ -1,0 +1,61 @@
+const { chromium } = require('playwright');
+const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {PhoneServer}=require('../phone/server.cjs'),{Runtime}=require('../orchestrator/runtime.cjs'),{Connections}=require('../orchestrator/mcp.cjs'),{Plugins}=require('../plugins/manager.cjs');
+(async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'dino-connected-'));
+ const runtime=new Runtime({root}),connections=new Connections(process.env),plugins=new Plugins(()=>root);
+ const host=new PhoneServer({getRoot:()=>root,runtime,connections,plugins,urls:()=>({}),getConnection:()=>({}),launchNative:async()=>{},port:0});
+ await host.start();
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const errors=[];
+ try {
+  const page=await browser.newPage({viewport:{width:1440,height:950}});
+  page.on('pageerror',e=>errors.push(e.message));
+  const base='http://127.0.0.1:'+host.port;
+  await page.goto(base+'/phone/#pair='+host.key+'&workspace=home');
+  await page.getByText('Host connected',{exact:true}).waitFor();
+  const nav=id=>page.locator('#navigation [data-route="'+id+'"]');
+  await fs.mkdir('.dino/ui-evidence',{recursive:true});
+  await page.screenshot({path:'.dino/ui-evidence/connected-home.png'});
+  await nav('neural').click();
+  await page.frameLocator('[data-route="neural"].workspace-frame').locator('canvas').first().waitFor({timeout:90000});
+  assert.equal(await page.locator('#sidebar').isVisible(),true);
+  console.log('PASS hosted neural canvas inside persistent Dino navigation');
+  await nav('cad').click();
+  const cad=page.frameLocator('[data-route="cad"].workspace-frame');
+  await cad.locator('#viewport canvas').waitFor();
+  await cad.locator('#p-width').fill('123');
+  await nav('projects').click();
+  await page.frameLocator('[data-route="projects"].workspace-frame').locator('#name').fill('Unfinished project draft');
+  await nav('cad').click();assert.equal(await cad.locator('#p-width').inputValue(),'123');
+  await nav('projects').click();assert.equal(await page.frameLocator('[data-route="projects"].workspace-frame').locator('#name').inputValue(),'Unfinished project draft');
+  console.log('PASS CAD and project drafts survive navigation');
+  await nav('fusion').click();await page.frameLocator('[data-route="fusion"].workspace-frame').locator('#fusion-pane').waitFor();
+  await nav('training').click();await page.locator('#dataset').fill('{"text":"Small test dataset."}');
+  await page.getByRole('button',{name:'Prepare dataset',exact:true}).click();
+  await page.getByText(/1 records prepared/).waitFor();
+  assert.match(await fs.readFile(path.join(root,'.dino/training/input.jsonl'),'utf8'),/Small test dataset/);
+  await nav('files').click();await page.getByText(/No artifacts yet/).waitFor();
+  await nav('training').click();assert.match(await page.locator('#dataset').inputValue(),/Small test dataset/);
+  await page.goBack();await page.waitForURL('**/#files');assert.equal(await page.locator('#title').innerText(),'Results & files');
+  console.log('PASS dataset preparation, result view, draft retention, browser Back');
+  for(const id of ['physics','freecad','activity','flows','extensions']) {
+    await nav(id).click();
+    if(id==='flows')await page.frameLocator('[data-route="flows"].workspace-frame').locator('body').waitFor();
+    if(id==='extensions')await page.frameLocator('[data-route="extensions"].workspace-frame').getByRole('heading',{name:'Tools, connected.'}).waitFor();
+  }
+  await nav('cad').click();await cad.getByRole('link',{name:'Integration studio ↗',exact:true}).first().click();
+  await page.waitForURL('**/#extensions');
+  assert.equal(await page.locator('#sidebar').isVisible(),true);
+  console.log('PASS child-page crosslinks return through shared router');
+  await page.locator('.settings-link').click();await page.frameLocator('[data-route="settings"].workspace-frame').locator('#more').waitFor();
+  await page.setViewportSize({width:390,height:844});await page.goto(base+'/phone/#home');await page.locator('#title').waitFor();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.locator('#menu').click();await nav('cad').click();await page.frameLocator('[data-route="cad"].workspace-frame').locator('#viewport canvas').waitFor();
+  assert.equal(await page.locator('body').evaluate(e=>e.classList.contains('menu-open')),false);
+  await page.screenshot({path:'.dino/ui-evidence/connected-mobile.png'});
+  console.log('PASS 390px mobile menu and CAD route; no horizontal page overflow');
+  assert.deepEqual(errors,[]);
+  console.log('PASS no uncaught page errors');
+ }finally{await browser.close();await host.close();await runtime.close();await connections.close();await fs.rm(root,{recursive:true,force:true});}
+})().catch(e=>{console.error(e);process.exitCode=1});

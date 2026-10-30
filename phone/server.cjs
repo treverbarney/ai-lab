@@ -420,6 +420,29 @@ class PhoneServer {
           text: await fs.readFile(path.join(__dirname, "..", doc.path), "utf8"),
         });
       }
+      if (req.method === 'POST' && url.pathname === '/api/training-data') {
+        if (this.trainingPreparing || this.runtime.snapshot().some(j => j.id === 'minimind' && ['running','queued','stopping'].includes(j.state)))
+          throw Error('Finish or stop the current training job before changing its dataset.');
+        const input = await body(req, 1500000);
+        if (typeof input.text !== 'string' || Buffer.byteLength(input.text) > 1048576)
+          throw Error('Provide JSONL text under 1 MB for this small training profile.');
+        const root = this.getRoot();
+        if (!root) throw Error('Connect a workspace first.');
+        if (this.trainingPreparing || this.runtime.snapshot().some(j => j.id === 'minimind' && ['running','queued','stopping'].includes(j.state)))
+          throw Error('Finish or stop the current training job before changing its dataset.');
+        this.trainingPreparing = true;
+        let temp;
+        try {
+          temp = await fs.mkdtemp(path.join(require('node:os').tmpdir(), 'dino-dataset-'));
+          const source = path.join(temp, 'input.jsonl');
+          await fs.writeFile(source, input.text);
+          const value = await require('../orchestrator/training.cjs').prepareTraining(root, source);
+          return json(res, 200, value);
+        } finally {
+          this.trainingPreparing = false;
+          if (temp) await fs.rm(temp, { recursive:true, force:true });
+        }
+      }
       if (req.method === "POST" && url.pathname === "/api/action") {
         const { id, action } = await body(req);
         const tool = tools.find((x) => x.id === id);
@@ -438,6 +461,8 @@ class PhoneServer {
           if (!tool.native) throw new Error("No native launcher.");
           await this.launchNative(id);
         } else if (["start", "sample", "install", "train"].includes(action)) {
+          if (id === 'minimind' && action === 'train' && this.trainingPreparing)
+            throw Error('Wait for dataset preparation to finish.');
           if (id === "minimind" && action === "train")
             await fs
               .access(
@@ -467,7 +492,12 @@ class PhoneServer {
     if (req.method !== "GET")
       return json(res, 405, { error: "Method unavailable." });
     const staticFiles = new Map([
-      ["/phone/", "index.html"],
+      ["/phone/", "workspace.html"],
+      ["/phone/control.html", "index.html"],
+      ["/phone/workspace.html", "workspace.html"],
+      ["/phone/workspace.js", "workspace.js"],
+      ["/phone/workspace.css", "workspace.css"],
+      ["/phone/embedded.css", "embedded.css"],
       ["/phone/app.js", "app.js"],
       ["/phone/styles.css", "styles.css"],
       ["/phone/manifest.webmanifest", "manifest.webmanifest"],
@@ -512,6 +542,10 @@ class PhoneServer {
           path.basename(url.pathname),
         ),
       );
+    if (url.pathname.startsWith('/workbench/') || url.pathname === '/phone/control.html') {
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; form-action 'self'");
+    }
     if (url.pathname.startsWith("/studio/"))
       res.setHeader("X-Frame-Options", "SAMEORIGIN");
     if (url.pathname.startsWith("/studio/"))

@@ -124,6 +124,10 @@ async function openView(item, mode) {
   document.body.classList.add("workspace-open");
 }
 async function launchTool(item) {
+  if (desktop && window.lab.openWorkspace) {
+    const route = {'llm-viz':'neural','transformer-explainer':'attention',tensorspace:'layers',minimind:'training',cad:'cad',fusion:'fusion',mujoco:'physics',freecad:'freecad'}[item.id];
+    return openUnified(route);
+  }
   if (item.url) return openView(item, 'hosted');
   if (item.id === 'cad') return $('#open-assembly').click();
   if (item.native && desktop) return window.lab.launchNative(item.id);
@@ -778,6 +782,7 @@ if (desktop) {
   if (desktop) data = await window.lab.catalog();
   render();
   await refresh();
+  if (desktop && data.root && window.lab.openWorkspace) await openUnified('home');
 })().catch((error) => toast(`Dino Lab could not load: ${error.message}`));
 
 async function phonePanel() {
@@ -1075,3 +1080,13 @@ $('#open-assembly').addEventListener('click', action(async () => {
   $('#view-toolbar').hidden = false;
   document.body.classList.add('workspace-open');
 }));
+
+async function openUnified(route = 'home') {
+  await window.lab.openWorkspace(route);
+  $('#detail-dialog').close();
+  activeTool = null;
+  $('#view-title').textContent = 'Dino Lab · Connected workspace';
+  $('#view-mode').textContent = 'Explore · Build · Train · Review';
+  $('#view-toolbar').hidden = false;
+  document.body.classList.add('workspace-open');
+}

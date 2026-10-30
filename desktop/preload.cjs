@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
   "lab",
   Object.freeze({
+    openWorkspace: (route = "home") => ipcRenderer.invoke("lab:workspace-view", route),
     openStudio: () => ipcRenderer.invoke("lab:studio"),
     openAssembly: () => ipcRenderer.invoke("lab:assembly"),
     pluginsCatalog: () => ipcRenderer.invoke("lab:plugins-catalog"),

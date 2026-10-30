@@ -59,7 +59,7 @@ function paragraph(text, kind) {
   if (kind) el.className = kind;
   return el;
 }
-function sheet(title, label = "DINO LAB / POCKET WORKSPACE") {
+function sheet(title, label = "DINO LAB / SETUP") {
   $("#sheet-title").textContent = title;
   $("#sheet-label").textContent = label;
   $("#sheet-body").replaceChildren();
@@ -709,6 +709,7 @@ window.addEventListener("offline", () => {
   $("#studio").append(button("Plugins →", "button secondary", openPlugins));
   renderTools();
   showConnection();
+  if (location.hash === '#more') document.querySelector('[data-tab="more"]').click();
   if ("serviceWorker" in navigator && window.isSecureContext)
     navigator.serviceWorker.register("sw.js").catch(() => {});
   const key = new URLSearchParams(location.hash.slice(1)).get("pair");
