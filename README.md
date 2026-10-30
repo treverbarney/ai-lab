@@ -1,7 +1,18 @@
 # Dino Lab
 
 **One local desktop project for neural exploration, training, CAD and physics.**
-Charcoal, warm off-white and Dino orange. Eight tool workspaces. One set of controls.
+Dino purple, silver surfaces and a focused workspace. Eight core tools, with
+projects, workflows and plugins in one navigation. Neural exploration and
+engineering are two parts of this same project.
+
+## Desktop and browser
+
+Dino Lab is a local desktop application with a responsive web companion. The
+computer runs Fusion, CAD engines, training and simulations; desktop and paired
+phone interfaces control that same workspace. The browser companion can be added
+to the phone's Home Screen. This repository is not a deployed cloud CAD service.
+See [the interface update](docs/workspace-redesign.md) and
+[Fusion requirements and useful next integrations](docs/fusion-integrations.md).
 
 ## Open the app
 

@@ -129,7 +129,7 @@ async function leaveView() {
   document.body.classList.remove("workspace-open");
 }
 function art(index) {
-  const color = index === 3 ? "#f47b43" : "#a3b38b";
+  const color = index === 3 ? "#7554cf" : "#8b83af";
   let shapes = "";
   if (index === 1) {
     for (let i = 0; i < 6; i++) {
@@ -618,9 +618,11 @@ async function readDoc(id) {
 function filter() {
   const query = $("#tool-search").value.trim().toLowerCase();
   let count = 0;
+  const view = currentView();
   document.querySelectorAll("[data-tool]").forEach((el) => {
     const item = all().find((x) => x.id === el.dataset.tool);
-    const shown = `${name(item)} ${item.name} ${item.description} ${item.label}`
+    const inTrack = view !== "neural" && view !== "engineering" || data[view].some((tool) => tool.id === item.id);
+    const shown = inTrack && `${name(item)} ${item.name} ${item.description} ${item.label}`
       .toLowerCase()
       .includes(query);
     el.hidden = !shown;
@@ -703,20 +705,39 @@ $("#quick-guide").addEventListener(
   action(() => readDoc("architecture")),
 );
 const navigationNames = {
-  overview: "Studio",
-  neural: "Neural studio",
-  engineering: "Engineering studio",
-  activity: "Activity",
-  guides: "Guides & setup",
+  overview: "Overview", neural: "Neural lab", engineering: "Engineering",
+  activity: "Activity", guides: "Guides & setup",
 };
-document.querySelectorAll("[data-nav]").forEach((link) =>
-  link.addEventListener("click", () => {
-    document
-      .querySelectorAll("[data-nav]")
-      .forEach((x) => x.classList.toggle("active", x === link));
-    $("#breadcrumb").textContent = navigationNames[link.dataset.nav];
-  }),
-);
+function currentView() {
+  const view = location.hash.slice(1);
+  return Object.hasOwn(navigationNames, view) ? view : "overview";
+}
+function navigate() {
+  const view = currentView();
+  document.querySelectorAll("[data-nav]").forEach((link) => {
+    const selected = link.dataset.nav === view;
+    link.classList.toggle("active", selected);
+    if (selected) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  $("#breadcrumb").textContent = navigationNames[view];
+  $("#overview").hidden = view !== "overview";
+  $("#quick-start").hidden = view !== "overview";
+  $(".metrics").hidden = view !== "overview";
+  $("#tool-workbench").hidden = !["overview", "neural", "engineering"].includes(view);
+  $("#neural").hidden = view === "engineering";
+  $("#engineering").hidden = view === "neural";
+  $("#activity").hidden = view !== "activity";
+  $("#guides").hidden = view !== "guides";
+  filter();
+}
+window.addEventListener("hashchange", navigate);
+document.querySelectorAll("[data-launch]").forEach((el) => {
+  el.addEventListener("click", action(() => toolPanel(all().find((tool) => tool.id === el.dataset.launch))));
+});
+$("#nav-projects").addEventListener("click", () => $("#open-workbench").click());
+$("#nav-studio").addEventListener("click", action(openStudio));
+navigate();
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "/" &&
@@ -724,6 +745,10 @@ document.addEventListener("keydown", (event) => {
     !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
   ) {
     event.preventDefault();
+    if (["activity", "guides"].includes(currentView())) {
+      location.hash = "overview";
+      navigate();
+    }
     $("#tool-search").focus();
   }
 });

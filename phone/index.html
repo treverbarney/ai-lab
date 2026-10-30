@@ -6,14 +6,14 @@
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
     />
-    <meta name="theme-color" content="#171817" />
+    <meta name="theme-color" content="#f5f5f9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="Dino Lab" />
-    <title>Dino Lab — Pocket studio</title>
+    <title>Dino Lab — Workspace</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/dino-180.png" />
     <link rel="icon" href="icons/dino-192.png" />
@@ -25,7 +25,7 @@
     <header class="header">
       <a href="#studio" class="brand"
         ><img src="icons/dino-192.png" width="34" height="34" alt="" /><span
-          >DINO <b>LAB</b><small>POCKET STUDIO</small></span
+          >DINO <b>LAB</b><small>YOUR WORKSPACE</small></span
         ></a
       ><button class="status-chip" id="connection-button">
         <i id="connection-dot"></i><span id="connection-label">Connect</span>
@@ -33,12 +33,12 @@
     </header>
     <main>
       <section id="studio" class="tab-panel">
-        <div class="eyebrow">YOUR IDEAS. ANYWHERE.</div>
-        <h1>Big lab.<br /><em>Small screen.</em></h1>
+        <div class="eyebrow">YOUR WORKSPACE</div>
+        <h1>Your lab, anywhere.</h1>
         <p class="intro">
-          Explore from your phone.<br />Let your desktop do the heavy lifting.
+          Explore, build and manage experiments from your phone.
         </p>
-        <div class="host-banner">
+        <div class="quick-links" aria-label="Workspace shortcuts"><a href="/workbench/index.html">Projects & review <span>↗</span></a><a href="/studio/index.html">Workflows <span>↗</span></a></div><div class="host-banner">
           <span class="host-icon">↗</span>
           <div>
             <strong id="host-name">Your desktop, one tap away.</strong>
@@ -60,11 +60,11 @@
           <h2>Your workbench</h2>
           <span>EXPLORE / BUILD / TRAIN</span>
         </div>
-        <div id="tool-list" class="tool-list"></div>
+        <label class="tool-search-label">Find a tool<input id="phone-search" type="search" placeholder="Search your tools…" /></label><div class="track-filters" role="group" aria-label="Tool category"><button data-track="all" aria-pressed="true">All tools</button><button data-track="neural" aria-pressed="false">Neural</button><button data-track="engineering" aria-pressed="false">Engineering</button></div><div id="tool-list" class="tool-list"></div><p id="empty-search" class="empty" hidden>No tools match your search.</p>
       </section>
       <section id="jobs" class="tab-panel" hidden>
         <div class="eyebrow">ON YOUR DESKTOP</div>
-        <h1>In motion.</h1>
+        <h1>Activity</h1>
         <p class="intro">Live output, current jobs and stop controls.</p>
         <button id="refresh-jobs" class="button secondary">
           Refresh host status ↻
@@ -73,7 +73,7 @@
       </section>
       <section id="files" class="tab-panel" hidden>
         <div class="eyebrow">BUILT IN YOUR LAB</div>
-        <h1>Made real.</h1>
+        <h1>Files & artifacts</h1>
         <p class="intro">
           Download STEP, STL, simulation results and other artifacts from your
           desktop.
@@ -85,7 +85,7 @@
       </section>
       <section id="more" class="tab-panel" hidden>
         <div class="eyebrow">MAKE IT YOURS</div>
-        <h1>Your pocket<br /><em>workbench.</em></h1>
+        <h1>Settings</h1>
         <div class="settings-section">
           <h2>Connect your desktop</h2>
           <p>
@@ -116,7 +116,7 @@
           access running. Hosted demos run in your phone browser. Offline mode
           keeps this workbench available; local jobs need the host connection.
         </p>
-        <p class="version">DINO LAB / POCKET STUDIO</p>
+        <p class="version">DINO LAB / YOUR WORKSPACE</p>
       </section>
     </main>
     <nav class="bottom-nav" aria-label="Pocket navigation">

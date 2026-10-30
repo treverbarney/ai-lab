@@ -7,32 +7,32 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <meta name="color-scheme" content="dark" />
-    <title>Dino Lab — Make something real.</title>
+    <meta name="color-scheme" content="light" />
+    <title>Dino Lab — Workspace</title>
     <link rel="icon" href="assets/dino-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script src="catalog.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
-    <div class="app-shell">
+    <a class="skip-link" href="#main-content">Skip to content</a><div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="#overview" aria-label="Dino Lab home"
           ><img src="assets/dino-mark.svg" alt="" width="40" height="40" /><span
             >DINO<span class="brand-light">LAB</span
-            ><small>THE LOCAL BUILD STUDIO</small></span
+            ><small>NEURAL + ENGINEERING</small></span
           ></a
         >
-        <div class="nav-caption">YOUR WORKBENCH</div>
+        <div class="nav-caption">WORKSPACE</div>
         <nav aria-label="Main navigation">
           <button id="open-assembly" class="plugin-nav"><span class="nav-icon">CAD</span>CAD & assembly<span class="nav-end">↗</span></button>
           <a href="#overview" data-nav="overview" class="active"
-            ><span class="nav-icon">01</span>Studio<span class="nav-end"
+            ><span class="nav-icon">01</span>Overview<span class="nav-end"
               >↗</span
             ></a
           >
           <a href="#neural" data-nav="neural"
-            ><span class="nav-icon">02</span>Neural<span class="nav-end"
+            ><span class="nav-icon">02</span>Neural lab<span class="nav-end"
               >4</span
             ></a
           >
@@ -51,14 +51,14 @@
           <a href="#guides" data-nav="guides"
             ><span class="nav-icon">05</span>Guides & setup</a
           >
-          <button id="open-plugins" class="plugin-nav">
+          <button id="nav-projects" class="plugin-nav"><span class="nav-icon">▱</span>Projects & review</button><button id="nav-studio" class="plugin-nav"><span class="nav-icon">⌘</span>Workflows</button><button id="open-plugins" class="plugin-nav">
             <span class="nav-icon">06</span>Plugins
             <span class="nav-end">↗</span>
           </button>
         </nav>
         <div class="sidebar-bottom">
           <span class="side-rule"></span>
-          <p>Small footprint.<br />Big ideas.</p>
+          <p>One lab.<br />Every discipline.</p>
           <span
             >Local tools. One workspace.<br />Nothing starts without you.</span
           ><button id="open-artifacts" class="text-button">
@@ -76,146 +76,47 @@
           </div>
           <div class="top-actions">
             <button id="open-workbench" class="button subtle">
-              Projects & agent ↗</button
+              Projects ↗</button
             ><button id="phone-access" class="button subtle">
               Phone access ↗
             </button>
             <span class="local-badge"
-              ><i class="status-dot"></i> ON YOUR MACHINE</span
+              ><i class="status-dot"></i> LOCAL WORKSPACE</span
             ><button id="initialize-workspace" class="button primary" hidden>
               Create workspace ↗
             </button>
             <button id="choose-workspace" class="button subtle">
-              Connect repository <span>↗</span>
+              Workspace <span>⌄</span>
             </button>
           </div>
         </header>
-        <main>
+        <main id="main-content" tabindex="-1">
           <section class="hero" id="overview">
             <div class="hero-copy">
-              <div class="eyebrow">
-                <span class="orange-line"></span> THE DINO WAY TO BUILD
-              </div>
-              <h1>From thought<br />to <em>thing.</em></h1>
-              <p>
-                Understand the model. Engineer the idea.<br />Your entire lab,
-                under one roof.
-              </p>
-              <div class="hero-actions">
-                <button class="button primary" id="explore-tools">
-                  Enter the workbench <span>↗</span></button
-                ><button class="text-button" id="quick-guide">
-                  How it fits together →
-                </button>
-              </div>
+              <div class="eyebrow">YOUR WORKSPACE</div>
+              <h1>What will you build?</h1>
+              <p>Explore a model, engineer a part, or pick up an experiment.</p>
             </div>
-            <div
-              class="hero-canvas"
-              aria-label="Explore, train and engineer in one workspace"
-            >
-              <div class="canvas-meta">
-                <span>DINO SYSTEM / 001</span
-                ><span><i class="status-dot"></i> LOCAL BY DESIGN</span>
-              </div>
-              <svg
-                class="system-art"
-                viewBox="0 0 520 300"
-                fill="none"
-                aria-hidden="true"
-              >
-                <defs>
-                  <pattern
-                    id="dots"
-                    width="18"
-                    height="18"
-                    patternUnits="userSpaceOnUse"
-                  >
-                    <circle cx="2" cy="2" r=".7" fill="#62665b" opacity=".5" />
-                  </pattern>
-                  <linearGradient id="beam">
-                    <stop stop-color="#f47b43" stop-opacity="0" />
-                    <stop offset=".5" stop-color="#f47b43" />
-                    <stop offset="1" stop-color="#f47b43" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-                <rect width="520" height="300" fill="url(#dots)" />
-                <ellipse
-                  cx="260"
-                  cy="165"
-                  rx="195"
-                  ry="85"
-                  stroke="#42483f"
-                  transform="rotate(-18 260 165)"
-                />
-                <ellipse
-                  cx="260"
-                  cy="165"
-                  rx="145"
-                  ry="49"
-                  stroke="#393e37"
-                  transform="rotate(-18 260 165)"
-                />
-                <path
-                  d="m74 213 370-119"
-                  stroke="url(#beam)"
-                  stroke-width="2"
-                />
-                <g stroke="#989d8b" stroke-width="1.2">
-                  <path
-                    d="m102 153 50-29 50 29v57l-50 29-50-29z"
-                    fill="#23281f"
-                  />
-                  <path d="m102 153 50 29 50-29m-50 29v57" />
-                  <path
-                    d="m224 97 50-29 50 29v57l-50 29-50-29z"
-                    fill="#f47b43"
-                    stroke="#ffad7d"
-                  />
-                  <path d="m224 97 50 29 50-29m-50 29v57" stroke="#5b3423" />
-                  <path
-                    d="m345 160 38-22 38 22v44l-38 22-38-22z"
-                    fill="#23281f"
-                  />
-                  <path d="m345 160 38 22 38-22m-38 22v44" />
-                </g>
-                <circle cx="75" cy="191" r="4" fill="#f47b43" />
-                <circle cx="440" cy="124" r="4" fill="#f47b43" />
-                <path d="M152 111V81h46M382 238v20h-47" stroke="#707763" />
-                <text
-                  x="110"
-                  y="68"
-                  fill="#9da18f"
-                  font-size="9"
-                  font-family="monospace"
-                >
-                  UNDERSTAND
-                </text>
-                <text
-                  x="316"
-                  y="276"
-                  fill="#9da18f"
-                  font-size="9"
-                  font-family="monospace"
-                >
-                  MAKE IT REAL
-                </text>
-              </svg>
-              <div class="canvas-bottom">
-                <span>01 / EXPLORE</span><span>02 / TRAIN</span
-                ><span>03 / ENGINEER</span>
-              </div>
+            <div class="hero-actions">
+              <button class="button primary" id="explore-tools">Explore tools <span>→</span></button>
+              <button class="button subtle" id="quick-guide">Quick guide</button>
             </div>
+          </section>
+          <section class="launch-grid" id="quick-start" aria-label="Start working">
+            <button class="launch-card" data-launch="llm-viz"><span class="launch-icon">◈</span><span><small>UNDERSTAND</small><strong>Look inside a model</strong><span>Tokens, attention and neural layers</span></span><b>↗</b></button>
+            <button class="launch-card" data-launch="cad"><span class="launch-icon">⬡</span><span><small>ENGINEER</small><strong>Design & build a part</strong><span>Parametric CAD and 3D exports</span></span><b>↗</b></button>
+            <button class="launch-card" data-launch="minimind"><span class="launch-icon">⌁</span><span><small>EXPERIMENT</small><strong>Train a small model</strong><span>Datasets, local runs and results</span></span><b>↗</b></button>
           </section>
           <section class="metrics" aria-label="Workspace overview">
             <div>
               <strong>08</strong
               ><span
-                >Connected disciplines<small>One shared workbench</small></span
+                >Core tools<small>Neural + engineering</small></span
               >
             </div>
             <div>
               <strong id="checkout-count">—</strong
-              ><span>Source modules<small>Kept modular, always</small></span>
+              ><span>Source modules<small>Installed source modules</small></span>
             </div>
             <div>
               <strong id="running-count">00</strong
@@ -225,14 +126,14 @@
             </div>
             <div class="metric-last">
               <i class="status-dot"></i
-              ><span>On demand<small>No background training</small></span>
+              ><span>On demand<small>Tools start when you choose</small></span>
             </div>
           </section>
           <section class="tools-section" id="tool-workbench">
             <div class="workbench-heading">
               <div>
-                <span class="eyebrow">YOUR TOOLKIT</span>
-                <h2>The workbench.</h2>
+                <span class="eyebrow">EXPLORE YOUR LAB</span>
+                <h2>Tools & workspaces</h2>
               </div>
               <label class="search"
                 ><span>⌕</span
@@ -249,7 +150,7 @@
                 <div>
                   <span class="track-number">01 —</span>
                   <h3>Neural studio</h3>
-                  <span>Look inside intelligence.</span>
+                  <span>Visualize and train models.</span>
                 </div>
                 <span class="section-tag">EXPLORE / UNDERSTAND / TRAIN</span>
               </div>
@@ -260,7 +161,7 @@
                 <div>
                   <span class="track-number">02 —</span>
                   <h3>Engineering studio</h3>
-                  <span>Bring ideas into the world.</span>
+                  <span>Design, simulate and validate.</span>
                 </div>
                 <span class="section-tag">GENERATE / ASSEMBLE / VALIDATE</span>
               </div>
@@ -280,7 +181,7 @@
               <div class="empty-state">
                 <span class="empty-symbol">—</span>
                 <div>
-                  <strong>Quiet by default.</strong>
+                  <strong>No jobs running</strong>
                   <p>
                     Start a local tool or run a sample. Its output will appear
                     here.
@@ -292,7 +193,7 @@
           <section id="guides" class="guide-section">
             <div class="workspace-panel">
               <span class="eyebrow">ONE PROJECT. ALL YOUR TOOLS.</span>
-              <h3>Your Dino workspace.</h3>
+              <h3>Workspace settings</h3>
               <p id="workspace-path">
                 Connect your ai-lab checkout to manage local tools.
               </p>
@@ -307,13 +208,13 @@
             </div>
             <div class="guides-panel">
               <span class="eyebrow">READ. BUILD. REPEAT.</span>
-              <h3>A field guide for your lab.</h3>
+              <h3>Guides & setup</h3>
               <div id="doc-links"></div>
             </div>
           </section>
           <footer>
             <span class="footer-brand">DINO LAB</span
-            ><span>Make something real.</span
+            ><span>Explore. Build. Learn.</span
             ><span>LOCAL TO THE CORE. OPEN AT THE EDGES.</span>
           </footer>
         </main>
