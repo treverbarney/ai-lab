@@ -244,3 +244,5 @@ $('#fusion-parameter-form').addEventListener('submit', async e => {
 action('#body-info', async () => { $('#fusion-result').textContent = JSON.stringify(await api({ op: 'body', name: $('#body-a').value }, true), null, 2); });
 action('#measure', async () => { const result = await api({ op: 'clearance', bodies: [$('#body-a').value, $('#body-b').value] }, true); $('#fusion-result').textContent = JSON.stringify(result, null, 2); });
 start();
+
+if (location.hash === '#fusion') tab(true);

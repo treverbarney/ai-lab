@@ -123,6 +123,12 @@ async function openView(item, mode) {
   $("#view-toolbar").hidden = false;
   document.body.classList.add("workspace-open");
 }
+async function launchTool(item) {
+  if (item.url) return openView(item, 'hosted');
+  if (item.id === 'cad') return $('#open-assembly').click();
+  if (item.native && desktop) return window.lab.launchNative(item.id);
+  toolPanel(item);
+}
 async function leaveView() {
   if (desktop) await window.lab.closeView();
   $("#view-toolbar").hidden = true;
@@ -180,9 +186,10 @@ function render() {
             ? "Open training workspace ↗"
             : "Open workspace ↗",
           "button",
-          () => toolPanel(item),
+          () => launchTool(item),
         ),
       );
+    card.querySelector('.tool-body').append(button('Setup & connection', 'text-button', () => toolPanel(item)));
     card.querySelector(".tool-status span").dataset.status = item.id;
     $("#neural-grid").append(card);
   });
@@ -196,8 +203,9 @@ function render() {
     row.querySelector("p").textContent = brands[item.id][1];
     row.querySelector(".row-status").dataset.status = item.id;
     row.append(
-      button("Open workspace ↗", "button subtle", () => toolPanel(item)),
+      button("Open workspace ↗", "button subtle", () => launchTool(item)),
     );
+    row.append(button('Setup & connection', 'text-button', () => toolPanel(item)));
     $("#engineering-grid").append(row);
   });
   $("#doc-links").replaceChildren(
@@ -733,7 +741,7 @@ function navigate() {
 }
 window.addEventListener("hashchange", navigate);
 document.querySelectorAll("[data-launch]").forEach((el) => {
-  el.addEventListener("click", action(() => toolPanel(all().find((tool) => tool.id === el.dataset.launch))));
+  el.addEventListener("click", action(() => launchTool(all().find((tool) => tool.id === el.dataset.launch))));
 });
 $("#nav-projects").addEventListener("click", () => $("#open-workbench").click());
 $("#nav-studio").addEventListener("click", action(openStudio));

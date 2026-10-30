@@ -598,3 +598,15 @@ h1 { font-size: 30px; font-weight: 650; letter-spacing: -1px; line-height: 1.2; 
 dialog { background: white; border-radius: 16px 16px 0 0; box-shadow: 0 -12px 70px #211e2e25; }
 dialog h2 { font-size: 25px; font-weight: 600; }
 @media (min-width: 700px) { h1 { font-size: 34px; } .tool-list { grid-template-columns: 1fr 1fr; gap: 12px; } dialog { border-radius: 16px; } }
+
+/* Direct tool workspaces retain Dino navigation. */
+.tool-entry { display:flex; align-items:center; gap:8px; }
+.tool-entry .tool-row { flex:1; min-width:0; }
+.tool-setup { color:var(--muted,#706a80); background:transparent; border:0; padding:12px; cursor:pointer; }
+#embedded-workspace { position:fixed; inset:0; z-index:40; background:#f5f3fa; display:flex; flex-direction:column; }
+#embedded-workspace header { display:flex; align-items:center; gap:16px; padding:12px 20px; color:#30243f; border-bottom:1px solid #d9d3e5; }
+#embedded-workspace header strong { flex:1; }
+#embedded-workspace header a { color:#6946b8; }
+#embedded-workspace iframe { width:100%; flex:1; border:0; background:white; }
+#embedded-workspace .viewer-note { margin:0; padding:6px 20px; color:#706a80; font-size:12px; }
+@media(max-width:600px) { #embedded-workspace header { gap:8px; padding:8px; flex-wrap:wrap; } }

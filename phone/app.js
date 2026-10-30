@@ -4,6 +4,7 @@ const catalog = window.labCatalog;
 let pluginList = [];
 let toolTrack = "all";
 const goStudio = new URLSearchParams(location.hash.slice(1)).has("studio");
+const initialTool = new URLSearchParams(location.hash.slice(1)).get('tool');
 const goCad = new URLSearchParams(location.hash.slice(1)).has("cad");
 const goWorkbench = new URLSearchParams(location.hash.slice(1)).has(
   "workbench",
@@ -118,8 +119,11 @@ function renderTools() {
       row.innerHTML = `<span class="tool-index">${String(index + 1).padStart(2, "0")}</span><div><h3></h3><p></p></div><span class="arrow">↗</span>`;
       row.querySelector("h3").textContent = names[tool.id];
       row.querySelector("p").textContent = tool.name;
-      row.addEventListener("click", () => openTool(tool));
-      return row;
+      row.addEventListener("click", action(() => launchTool(tool)));
+      const group = document.createElement('div');
+      group.className = 'tool-entry';
+      group.append(row, button('Setup', 'tool-setup', () => openTool(tool)));
+      return group;
     }),
   );
   $("#empty-search").hidden = list.children.length !== 0;
@@ -246,6 +250,36 @@ async function run(tool, jobAction) {
     `${names[tool.id] || tool.name || tool.id}: ${jobAction === "launch" ? "launched on host" : jobAction + " requested"}.`,
   );
   await refresh();
+}
+function launchTool(tool) {
+  if (tool.id === 'cad' || tool.id === 'fusion') {
+    location.href = '/studio/assembly.html' + (tool.id === 'fusion' ? '#fusion' : '');
+    return;
+  }
+  if (!tool.url) return openTool(tool);
+  const previous = $('#embedded-workspace');
+  previous?.remove();
+  const workspace = document.createElement('section');
+  workspace.id = 'embedded-workspace';
+  const header = document.createElement('header');
+  header.append(button('← All tools', 'button secondary', () => workspace.remove()));
+  const title = document.createElement('strong');
+  title.textContent = names[tool.id];
+  header.append(title);
+  const external = document.createElement('a');
+  external.href = tool.url;
+  external.target = '_blank';
+  external.rel = 'noopener noreferrer';
+  external.textContent = 'Open in tab ↗';
+  header.append(external, button('Setup', 'button secondary', () => openTool(tool)));
+  const note = paragraph('Hosted tool · internet required. If this viewer cannot embed, use Open in tab.', 'viewer-note');
+  const frame = document.createElement('iframe');
+  frame.title = names[tool.id] + ' interactive workspace';
+  frame.src = tool.url;
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads');
+  frame.setAttribute('allow', 'fullscreen');
+  workspace.append(header, note, frame);
+  document.body.append(workspace);
 }
 function openTool(tool) {
   if (!tool) throw Error("Tool unavailable. Refresh your connection.");
@@ -688,6 +722,7 @@ window.addEventListener("offline", () => {
       toast(error.message);
     }
   } else await refresh();
+  if (initialTool && tools.some(tool => tool.id === initialTool)) launchTool(tools.find(tool => tool.id === initialTool));
   if (goCad && connected) location.assign('/studio/assembly.html');
   else if (goStudio && connected) location.assign("/studio/index.html");
   if (goWorkbench && connected) location.assign("/workbench/index.html");

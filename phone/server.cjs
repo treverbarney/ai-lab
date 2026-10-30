@@ -176,7 +176,7 @@ class PhoneServer {
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
     );
     let origin;
     try {
