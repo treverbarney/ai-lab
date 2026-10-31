@@ -1,3 +1,7 @@
+# 3D AI Learning
+
+This checkout now launches the learning-only application. CAD, Fusion and physics are in the separate dino-cad project. See [learning tools and first steps](docs/learning-tools.md). The historical combined-workspace documentation below is retained as implementation reference.
+
 # Dino Lab
 
 **One local desktop project for neural exploration, training, CAD and physics.**

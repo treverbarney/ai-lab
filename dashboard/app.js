@@ -3,19 +3,19 @@ const $ = (selector) => document.querySelector(selector);
 const desktop = Boolean(window.lab);
 const brands = {
   "llm-viz": [
-    "Dino Neural",
+    "LLM Visualization",
     "GPT architecture, in three dimensions. Follow a token through the model.",
   ],
   "transformer-explainer": [
-    "Dino Attention",
+    "Transformer Explainer",
     "See the next token take shape inside a live transformer.",
   ],
   tensorspace: [
-    "Dino Layers",
+    "TensorSpace",
     "Explore a neural network, one interactive layer at a time.",
   ],
   minimind: [
-    "Dino Train",
+    "MiniMind",
     "A compact language model. Your own training workbench.",
   ],
   fusion: [
@@ -41,7 +41,7 @@ let data = window.labCatalog,
   connected = [],
   activeTool,
   toastTimer;
-const all = () => [...data.neural, ...data.engineering];
+const all = () => [...data.neural, ...(data.lessons || [])];
 const name = (item) =>
   item ? brands[item.id]?.[0] || item.name || item.id : "Plugin";
 function toast(message) {
@@ -87,7 +87,7 @@ function section(parent, title) {
   parent.append(el);
   return el;
 }
-function modal(title, label = "DINO LAB / FIELD GUIDE") {
+function modal(title, label = "3D AI LEARNING / FIELD GUIDE") {
   activeTool = null;
   $("#dialog-title").textContent = title;
   $("#dialog-label").textContent = label;
@@ -97,7 +97,7 @@ function modal(title, label = "DINO LAB / FIELD GUIDE") {
 }
 function requireDesktop() {
   if (!desktop)
-    throw new Error("Open the Dino Lab desktop app to manage local tools.");
+    throw new Error("Open the 3D AI Learning desktop app to manage local tools.");
 }
 async function source(item) {
   if (desktop) await window.lab.openSource(item.id);
@@ -124,6 +124,7 @@ async function openView(item, mode) {
   document.body.classList.add("workspace-open");
 }
 async function launchTool(item) {
+  if (item.lesson) return openView(item, "hosted");
   if (desktop && window.lab.openWorkspace) {
     const route = {'llm-viz':'neural','transformer-explainer':'attention',tensorspace:'layers',minimind:'training',cad:'cad',fusion:'fusion',mujoco:'physics',freecad:'freecad'}[item.id];
     return openUnified(route);
@@ -172,7 +173,7 @@ function art(index) {
 function render() {
   $("#neural-grid").replaceChildren();
   $("#engineering-grid").replaceChildren();
-  data.neural.forEach((item, index) => {
+  [...data.neural, ...(data.lessons || [])].forEach((item, index) => {
     const card = document.createElement("article");
     card.className = "tool-card";
     card.dataset.tool = item.id;
@@ -181,7 +182,8 @@ function render() {
     card.querySelector("h4").textContent = name(item);
     card.querySelector(".upstream").textContent =
       `POWERED BY ${item.name.toUpperCase()}`;
-    card.querySelector("p").textContent = brands[item.id][1];
+    card.querySelector("p").textContent = brands[item.id]?.[1] || item.description;
+    if (item.tryThis) card.querySelector(".tool-body").append(paragraph("Try this: " + item.tryThis, "lesson-task"));
     card
       .querySelector(".tool-body")
       .append(
@@ -193,11 +195,11 @@ function render() {
           () => launchTool(item),
         ),
       );
-    card.querySelector('.tool-body').append(button('Setup & connection', 'text-button', () => toolPanel(item)));
+    if (!item.lesson) card.querySelector('.tool-body').append(button('Setup & connection', 'text-button', () => toolPanel(item)));
     card.querySelector(".tool-status span").dataset.status = item.id;
     $("#neural-grid").append(card);
   });
-  data.engineering.forEach((item, index) => {
+  [].forEach((item, index) => {
     const row = document.createElement("article");
     row.className = "engineering-row";
     row.dataset.tool = item.id;
@@ -213,13 +215,13 @@ function render() {
     $("#engineering-grid").append(row);
   });
   $("#doc-links").replaceChildren(
-    ...data.docs.map((doc) =>
+    ...data.docs.filter(doc => ["learning-tools","phone","integration"].includes(doc.id)).map((doc) =>
       button(`${doc.name}  ↗`, "doc-link", () => readDoc(doc.id)),
     ),
   );
   $("#app-version").textContent = desktop
-    ? `DINO LAB / v${data.version}`
-    : "DINO LAB / BROWSER PREVIEW";
+    ? `3D AI LEARNING / v${data.version}`
+    : "3D AI LEARNING / BROWSER PREVIEW";
   filter();
 }
 function updateStatusLabels() {
@@ -227,7 +229,7 @@ function updateStatusLabels() {
     const job = jobs.find((j) => j.id === item.id);
     const status = statuses.find((s) => s.id === item.id);
     const connection = connected.find((c) => c.id === item.id);
-    const label =
+    const label = item.lesson ? (item.external ? "Research examples · optional local setup" : "Hosted interactive lesson · internet required") :
       job?.state === "running"
         ? `${job.action} running`
         : connection
@@ -274,7 +276,7 @@ async function refresh() {
     : "—";
   $("#status-summary").textContent = desktop
     ? `${modules} source modules ready · ${connected.length} MCP servers connected`
-    : "Hosted neural demos work here. Native tools run in Dino Lab desktop.";
+    : "Hosted neural demos work here. Native tools run in 3D AI Learning desktop.";
   updateStatusLabels();
   renderJobs();
 }
@@ -333,7 +335,7 @@ async function run(item, jobAction) {
   toast(`${name(item)}: ${jobAction} started. Follow its output in Activity.`);
 }
 function toolPanel(item) {
-  const body = modal(name(item), "DINO LAB / TOOL WORKSPACE");
+  const body = modal(name(item), "3D AI LEARNING / TOOL WORKSPACE");
   activeTool = item.id;
   body.append(
     paragraph(`${item.name} · ${item.label}`, "tool-panel-subtitle"),
@@ -624,7 +626,7 @@ async function readDoc(id) {
       pre.textContent = await response.text();
     }
   } catch (error) {
-    pre.textContent = `${error.message}\nOpen ${doc.path} in your repository, or run Dino Lab desktop.`;
+    pre.textContent = `${error.message}\nOpen ${doc.path} in your repository, or run 3D AI Learning desktop.`;
   }
 }
 function filter() {
@@ -643,7 +645,7 @@ function filter() {
   $("#no-results").hidden = count !== 0;
 }
 function showConnections() {
-  const body = modal("Your connected workbench.", "DINO LAB / CONNECTIONS");
+  const body = modal("Your connected workbench.", "3D AI LEARNING / CONNECTIONS");
   const table = document.createElement("table");
   table.className = "connection-table";
   all().forEach((item) => {
@@ -714,7 +716,7 @@ $("#explore-tools").addEventListener("click", () =>
 );
 $("#quick-guide").addEventListener(
   "click",
-  action(() => readDoc("architecture")),
+  action(() => readDoc("learning-tools")),
 );
 const navigationNames = {
   overview: "Overview", neural: "Neural lab", engineering: "Engineering",
@@ -738,7 +740,7 @@ function navigate() {
   $(".metrics").hidden = view !== "overview";
   $("#tool-workbench").hidden = !["overview", "neural", "engineering"].includes(view);
   $("#neural").hidden = view === "engineering";
-  $("#engineering").hidden = view === "neural";
+  $("#engineering").hidden = true;
   $("#activity").hidden = view !== "activity";
   $("#guides").hidden = view !== "guides";
   filter();
@@ -782,14 +784,14 @@ if (desktop) {
   if (desktop) data = await window.lab.catalog();
   render();
   await refresh();
-  if (desktop && data.root && window.lab.openWorkspace) await openUnified('home');
-})().catch((error) => toast(`Dino Lab could not load: ${error.message}`));
+  // Learning overview stays visible; no workspaces start at launch.
+})().catch((error) => toast(`3D AI Learning could not load: ${error.message}`));
 
 async function phonePanel() {
-  const body = modal("Your lab. In your pocket.", "DINO LAB / PHONE ACCESS");
+  const body = modal("Your lab. In your pocket.", "3D AI LEARNING / PHONE ACCESS");
   body.append(
     paragraph(
-      "Use Dino Lab on iPhone or Android. Your desktop runs local tools; your phone controls jobs, MCP tools and build files. Connect Tailscale on both devices.",
+      "Use 3D AI Learning on iPhone or Android. Your desktop runs local tools; your phone controls jobs, MCP tools and build files. Connect Tailscale on both devices.",
     ),
   );
   const content = document.createElement("div");
@@ -836,7 +838,7 @@ async function phonePanel() {
       content.append(link);
       const image = document.createElement("img");
       image.src = info.qr;
-      image.alt = "Scan to pair Dino Lab on your phone";
+      image.alt = "Scan to pair 3D AI Learning on your phone";
       image.width = 240;
       image.height = 240;
       image.className = "phone-qr";
@@ -882,7 +884,7 @@ $("#open-workbench").addEventListener(
 
 async function pluginsPanel() {
   requireDesktop();
-  const body = modal("Build your own toolkit.", "DINO LAB / PLUGINS");
+  const body = modal("Build your own toolkit.", "3D AI LEARNING / PLUGINS");
   body.append(
     paragraph(
       "Small adapters. Your choice of engines. Import a local plugin, review its commands, then enable it for this workspace.",
@@ -961,7 +963,7 @@ async function pluginsPanel() {
 async function pluginPanel(id) {
   const plugin = (await window.lab.plugins()).find((p) => p.id === id);
   if (!plugin) throw Error("Plugin was removed. Refresh the plugin shelf.");
-  const body = modal(plugin.name, "DINO LAB / PLUGIN WORKSPACE");
+  const body = modal(plugin.name, "3D AI LEARNING / PLUGIN WORKSPACE");
   activeTool = id;
   body.append(
     button("← All plugins", "text-button", pluginsPanel),
@@ -1085,7 +1087,7 @@ async function openUnified(route = 'home') {
   await window.lab.openWorkspace(route);
   $('#detail-dialog').close();
   activeTool = null;
-  $('#view-title').textContent = 'Dino Lab · Connected workspace';
+  $('#view-title').textContent = '3D AI Learning · Connected workspace';
   $('#view-mode').textContent = 'Explore · Build · Train · Review';
   $('#view-toolbar').hidden = false;
   document.body.classList.add('workspace-open');

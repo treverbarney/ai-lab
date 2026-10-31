@@ -1,0 +1,5 @@
+/* Engineering source remains preserved for the separate CAD project. */
+#open-assembly,[data-nav="engineering"],#engineering,#nav-studio,#nav-projects,#open-workbench,#open-plugins {display:none!important}
+.brand,.brand-light {font-size:15px}
+.lesson-task{font-size:13px!important;color:#59457e!important;border-top:1px solid #e4dfee;padding-top:10px}
+.tool-card .tool-body{display:flex;flex-direction:column}.tool-card .tool-body>.button{margin-top:auto}

@@ -176,7 +176,7 @@ class PhoneServer {
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org https://playground.tensorflow.org https://cs.stanford.edu https://evolutiongym.github.io; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
     );
     let origin;
     try {
@@ -544,7 +544,7 @@ class PhoneServer {
       );
     if (url.pathname.startsWith('/workbench/') || url.pathname === '/phone/control.html') {
       res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; form-action 'self'");
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self' https://bbycroft.net https://poloclub.github.io https://tensorspace.org https://playground.tensorflow.org https://cs.stanford.edu https://evolutiongym.github.io; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; form-action 'self'");
     }
     if (url.pathname.startsWith("/studio/"))
       res.setHeader("X-Frame-Options", "SAMEORIGIN");

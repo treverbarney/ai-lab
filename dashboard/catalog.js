@@ -95,6 +95,7 @@
     },
   ];
   const docs = [
+    { id: "learning-tools", name: "Learning tools & first steps", path: "docs/learning-tools.md" },
     { id: "assembly", name: "CAD & assembly", path: "docs/cad-assembly.md" },
     { id: "fusion-options", name: "Fusion requirements & next tools", path: "docs/fusion-integrations.md" },
     { id: "workspace-design", name: "Workspace design update", path: "docs/workspace-redesign.md" },
@@ -120,7 +121,70 @@
       path: "docs/neural-integration.md",
     },
   ];
-  const catalog = { neural, engineering, docs };
+  const lessons = [
+  {
+    "id": "playground",
+    "name": "Neural Network Playground",
+    "label": "LEARN BY CHANGING",
+    "description": "Change neurons and connections, then watch a small network learn.",
+    "tryThis": "Choose the spiral dataset. Add a layer, press Play, and compare training loss with test loss.",
+    "url": "https://playground.tensorflow.org/",
+    "source": "https://github.com/tensorflow/playground",
+    "lesson": true
+  },
+  {
+    "id": "cnn",
+    "name": "CNN Explainer",
+    "label": "HOW AI SEES",
+    "description": "Follow a picture through an image-recognition network, from pixels to a prediction.",
+    "tryThis": "Choose an image and click a convolution layer. Look at its feature maps.",
+    "url": "https://poloclub.github.io/cnn-explainer/",
+    "source": "https://github.com/poloclub/cnn-explainer",
+    "lesson": true
+  },
+  {
+    "id": "diffusion",
+    "name": "Diffusion Explainer",
+    "label": "HOW AI MAKES IMAGES",
+    "description": "Follow text and noise through the steps that create an image.",
+    "tryThis": "Compare the provided prompts, change the seed, and inspect a denoising step.",
+    "url": "https://poloclub.github.io/diffusion-explainer/",
+    "source": "https://github.com/poloclub/diffusion-explainer",
+    "lesson": true
+  },
+  {
+    "id": "gan",
+    "name": "GAN Lab",
+    "label": "TWO NETWORKS LEARNING",
+    "description": "Train a generator and a judge on a small 2D dataset.",
+    "tryThis": "Choose a target distribution, start training, and watch the generated points move.",
+    "url": "https://poloclub.github.io/ganlab/",
+    "source": "https://github.com/poloclub/ganlab",
+    "lesson": true
+  },
+  {
+    "id": "rewards",
+    "name": "Reward Learning",
+    "label": "LEARNING THROUGH ACTION",
+    "description": "Watch a small neural agent learn from good and bad outcomes.",
+    "tryThis": "Compare early wandering with behavior after training. This older example can take minutes.",
+    "url": "https://cs.stanford.edu/people/karpathy/convnetjs/demo/rldemo.html",
+    "source": "https://github.com/karpathy/convnetjs",
+    "lesson": true
+  },
+  {
+    "id": "evolution",
+    "name": "EvoGym",
+    "label": "EVOLVING ROBOT DESIGNS",
+    "description": "Explore research on learning both a robot body and how it moves.",
+    "tryThis": "Browse tasks and examples first. Local training requires separate Python setup; opening this page does not start training.",
+    "url": "https://evolutiongym.github.io/",
+    "source": "https://github.com/EvolutionGym/evogym",
+    "lesson": true,
+    "external": true
+  }
+];
+  const catalog = { neural, engineering, docs, lessons };
   if (typeof module !== "undefined") module.exports = catalog;
   else window.labCatalog = catalog;
 })();

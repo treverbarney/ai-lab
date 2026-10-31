@@ -16,9 +16,9 @@ if (
 // Only adapters and product assets are bundled. Source modules and local user data stay outside.
 packager({
   dir: path.join(__dirname, ".."),
-  name: "Dino Lab",
-  executableName: "dino-lab",
-  appBundleId: "com.treverbarney.dinolab",
+  name: "3D AI Learning",
+  executableName: "3d-ai-learning",
+  appBundleId: "com.treverbarney.3dailearning",
   appCategoryType: "public.app-category.developer-tools",
   appCopyright: "Dino Lab · Trever Barney",
   icon: path.join(
@@ -51,7 +51,7 @@ packager({
     /^\/dist(?:\/|$)/,
   ],
 })
-  .then((paths) => console.log(`Dino Lab ready: ${paths.join(", ")}`))
+  .then((paths) => console.log(`3D AI Learning ready: ${paths.join(", ")}`))
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

@@ -22,7 +22,8 @@ const { environment } = require("./environment.cjs");
 const { Bootstrap } = require("./bootstrap.cjs");
 const { PhoneAccess } = require("../phone/access.cjs");
 let runtime, connections, bootstrap, phone, plugins;
-app.setName("Dino Lab");
+app.setName("3D AI Learning");
+app.setPath("userData", path.join(app.getPath("appData"), "3d-ai-learning"));
 const catalog = require("../dashboard/catalog.js");
 const workspace = require("./workspace.cjs");
 let win,
@@ -32,7 +33,7 @@ let win,
   root;
 const homeFile = path.join(__dirname, "..", "dashboard", "index.html");
 const homeUrl = pathToFileURL(homeFile).href;
-const all = [...catalog.neural, ...catalog.engineering];
+const all = [...catalog.neural, ...catalog.engineering, ...catalog.lessons];
 const itemById = (id) => {
   const item = all.find((x) => x.id === id);
   if (!item) throw new Error("Unknown tool.");
@@ -82,7 +83,7 @@ function handle(channel, fn) {
 async function showView(id, mode, route = 'home') {
   const workspaceRoutes = ['home','neural','attention','layers','cad','fusion','physics','freecad','training','projects','files','flows','extensions','activity','settings'];
   if (!workspaceRoutes.includes(route)) throw Error('Unknown workspace.');
-  let item = catalog.neural.find((x) => x.id === id && x.url);
+  let item = [...catalog.neural, ...catalog.lessons].find((x) => x.id === id && x.url);
   if (id === "studio" || id === "assembly" || id === "workspace") item = { name: id === "assembly" ? "Dino CAD & Assembly" : "Dino Integration Studio", url: "local" };
   if (!item || !["hosted", "local"].includes(mode))
     throw new Error("No visualizer available.");
@@ -135,7 +136,7 @@ async function showView(id, mode, route = 'home') {
 }
 async function createWindow() {
   win = new BrowserWindow({
-    title: "Dino Lab",
+    title: "3D AI Learning",
     icon: path.join(__dirname, "..", "dashboard", "assets", "dino-icon.png"),
     width: 1380,
     height: 920,
@@ -210,6 +211,8 @@ app.whenReady().then(async () => {
   connections = new Connections(environment());
   phone = new PhoneAccess({
     plugins,
+    port: 4337,
+    httpsPort: 8445,
     getRoot: () => root,
     runtime,
     connections,
@@ -535,7 +538,7 @@ app.whenReady().then(async () => {
   handle("close-view", closeView);
   handle("browser", (id) => {
     if (id === undefined) return currentUrl && shell.openExternal(currentUrl);
-    const item = catalog.neural.find((x) => x.id === id && x.url);
+    const item = [...catalog.neural, ...catalog.lessons].find((x) => x.id === id && x.url);
     if (!item) throw new Error("Unknown visualizer.");
     return shell.openExternal(item.url);
   });

@@ -1,8 +1,8 @@
 {
-  "name": "dino-lab",
+  "name": "3d-ai-learning",
   "version": "0.7.0",
   "private": true,
-  "description": "One local Dino workspace for neural exploration, training, CAD and simulation",
+  "description": "Visual, hands-on neural networks and AI learning",
   "author": "Trever Barney",
   "main": "desktop/main.cjs",
   "scripts": {
@@ -45,5 +45,5 @@
     "three": "0.186.1",
     "web-push": "3.6.7"
   },
-  "productName": "Dino Lab"
+  "productName": "3D AI Learning"
 }

@@ -4,6 +4,7 @@ const { PhoneServer } = require("./server.cjs");
 class PhoneAccess {
   constructor(options) {
     this.server = new PhoneServer(options);
+    this.httpsPort = options.httpsPort || 8443;
     this.env = options.env || process.env;
     this.createdServe = false;
     this.privateUrl = null;
@@ -47,19 +48,19 @@ class PhoneAccess {
     );
     const target = `http://127.0.0.1:${this.server.port}`;
     const existing = Object.entries(config.Web || {}).filter(([host]) =>
-      host.endsWith(":8443"),
+      host.endsWith(":" + this.httpsPort),
     );
     const own =
       existing.length === 1 && existing[0][1].Handlers?.["/"]?.Proxy === target;
-    if ((config.TCP?.["8443"] || existing.length) && !own)
+    if ((config.TCP?.[String(this.httpsPort)] || existing.length) && !own)
       throw new Error(
-        "Tailscale port 8443 is already in use. Existing services were left unchanged.",
+        "Tailscale port " + this.httpsPort + " is already in use. Existing services were left unchanged.",
       );
     if (!own) {
-      await this.command(["serve", "--bg", "--yes", "--https=8443", target]);
+      await this.command(["serve", "--bg", "--yes", "--https=" + this.httpsPort, target]);
       this.createdServe = true;
     }
-    this.privateUrl = `https://${dns}:8443`;
+    this.privateUrl = `https://${dns}:${this.httpsPort}`;
     this.server.publicOrigin = this.privateUrl;
     this.message =
       "Private phone access is ready. Connect Tailscale on your phone and scan the code.";
@@ -97,13 +98,13 @@ class PhoneAccess {
         if (
           Object.entries(status.Web || {}).some(
             ([host, value]) =>
-              host.endsWith(":8443") && value.Handlers?.["/"]?.Proxy === target,
+              host.endsWith(":" + this.httpsPort) && value.Handlers?.["/"]?.Proxy === target,
           )
         )
           await this.command([
             "serve",
             "--yes",
-            "--https=8443",
+            "--https=" + this.httpsPort,
             "--set-path=/",
             "off",
           ]);
